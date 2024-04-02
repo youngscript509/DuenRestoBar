@@ -18,7 +18,11 @@
     <meta name="twitter:image:src" content="https://dueninvoice.netlify.app/logo.png">
     <meta property="og:image" content="https://dueninvoice.netlify.app/logo.png">
     <meta name="twitter:title" content="Home">
-    
+    <script>
+      function isInstallable() {
+  return ('serviceWorker' in navigator) && ('Standalone' in window.navigator);
+}
+    </script>
     <link rel="shortcut icon" href="logo.png" type="image/x-icon">
     <meta name="description" content="Duen Invoice">
     <meta property="og:title" content="Duen">
@@ -978,9 +982,7 @@ firebase.auth().onAuthStateChanged(function(user) {
     }
     // Reste du code pour afficher les données et gérer les interactions utilisateur...
 
-    function isInstallable() {
-  return ('serviceWorker' in navigator) && ('Standalone' in window.navigator);
-}
+    
 function showInstallBanner() {
   const installBanner = document.getElementById('install-banner');
   installBanner.style.display = 'block';
