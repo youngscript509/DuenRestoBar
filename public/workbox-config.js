@@ -14,12 +14,5 @@ module.exports = {
         },
       },
     },
-    {
-      urlPattern: /^https:\/\/api.example.com\/data/,
-      handler: 'StaleWhileRevalidate',
-      options: {
-        cacheName: 'api-data',
-      },
-    },
   ],
 };
