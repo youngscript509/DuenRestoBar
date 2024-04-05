@@ -385,6 +385,31 @@ width: 100%;}
                     
                   </div>
                   
+                  <div class="row">
+                        
+                       
+                    <div class="">
+                        <div class="card">
+                         
+                            <div class="card-body">
+                                <div class="metric-value d-inline-block">
+                                    <div id="resultsContainer"></div>
+                                    
+                                </div>
+                                <div class="metric-label d-inline-block float-right text-success font-weight-bold">
+                                    <span class="icon-circle-small icon-box-xs text-success bg-success-light"><i class="fa fa-fw fa-arrow-up"></i></span><span class="ml-1">25%</span>
+                                </div>
+                            </div>
+                            <div class="card-body bg-light p-t-40 p-b-40">
+                                <div id="sparkline-revenue3"></div>
+                            </div>
+                            <div class="card-footer text-center bg-white">
+                                <a href="#" class="card-link">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                
+                </div>
 
                     </div>
                     
@@ -990,6 +1015,125 @@ function formatDate(date) {
 
 
   </script>
+
+<script>
+  // Fonction pour récupérer les ventes en fonction de la date sélectionnée et afficher les totaux par jour avec la liste des produits et le grand total pour chaque collection
+  function filterSalesByDate() {
+      const selectedDate = document.getElementById('date').value; // Récupérer la date sélectionnée dans l'input
+
+      // Si aucune date n'est sélectionnée, afficher un message d'erreur ou une notification à l'utilisateur
+      if (!selectedDate) {
+          alert('Veuillez sélectionner une date.');
+          return;
+      }
+
+      // Définir les catégories disponibles
+      const categories = ['drink', 'food', 'room', 'pool'];
+
+      // Initialiser l'objet pour stocker les totaux par article, par catégorie et par devise
+      const totalsByItemCategoryAndCurrency = {};
+
+      // Récupérer la collection de ventes pour la date sélectionnée
+      db.collection('globalSales').where("date", "==", selectedDate).get()
+          .then(function(querySnapshot) {
+              querySnapshot.forEach(function(doc) {
+                  const data = doc.data();
+                  const products = data.products;
+
+                  // Parcourir les produits de cette vente
+                  products.forEach(function(product) {
+                      const category = product.category;
+                      const currency = product.currency;
+                      const quantity = parseInt(product.quantity);
+                      const price = parseFloat(product.price);
+                      const revenue = quantity * price;
+
+                      // Vérifier si la catégorie est une catégorie valide
+                      if (categories.includes(category)) {
+                          // Si la catégorie n'existe pas encore dans les totaux, l'initialiser
+                          if (!totalsByItemCategoryAndCurrency.hasOwnProperty(category)) {
+                              totalsByItemCategoryAndCurrency[category] = { Gdes: {}, Us: {} };
+                          }
+
+                          // Vérifier si l'article existe déjà dans la devise spécifiée
+                          const itemKey = product.item.toLowerCase(); // Utiliser le nom de l'article comme clé, en minuscules pour éviter les doublons
+                          if (!totalsByItemCategoryAndCurrency[category][currency].hasOwnProperty(itemKey)) {
+                              // Si l'article n'existe pas encore, l'initialiser avec la quantité et le revenu actuels
+                              totalsByItemCategoryAndCurrency[category][currency][itemKey] = {
+                                  totalQuantity: quantity,
+                                  totalRevenue: revenue
+                              };
+                          } else {
+                              // Si l'article existe déjà, mettre à jour la quantité et le revenu
+                              totalsByItemCategoryAndCurrency[category][currency][itemKey].totalQuantity += quantity;
+                              totalsByItemCategoryAndCurrency[category][currency][itemKey].totalRevenue += revenue;
+                          }
+                      }
+                  });
+              });
+
+              // Afficher les totaux par catégorie, par article et par devise
+              displayTotalSalesByCategoryAndCurrency(totalsByItemCategoryAndCurrency);
+          })
+          .catch(function(error) {
+              console.error('Error getting documents: ', error);
+          });
+  }
+
+  // Fonction pour afficher les totaux par catégorie, par article et par devise
+  function displayTotalSalesByCategoryAndCurrency(totalsByItemCategoryAndCurrency) {
+      const resultContainer = document.getElementById('resultsContainer');
+      resultContainer.innerHTML = ''; // Effacer le contenu précédent
+
+      // Générer le contenu HTML pour les totaux par catégorie, par article et par devise
+      let html = '<h3>Rapport Du Jour</h3>';
+
+      // Boucle à travers chaque catégorie
+      for (const category in totalsByItemCategoryAndCurrency) {
+          if (totalsByItemCategoryAndCurrency.hasOwnProperty(category)) {
+              html += `<h4>${category}:</h4>`;
+              let totalGdes = 0;
+              let totalUs = 0;
+
+              html += '<h5>Gdes:</h5>';
+              html += '<ul>';
+              // Afficher les produits en Gdes et calculer le total
+              for (const item in totalsByItemCategoryAndCurrency[category].Gdes) {
+                  if (totalsByItemCategoryAndCurrency[category].Gdes.hasOwnProperty(item)) {
+                      const total = totalsByItemCategoryAndCurrency[category].Gdes[item];
+                      html += `<li>${item}: Quantité - ${total.totalQuantity}, Revenu - ${total.totalRevenue}</li>`;
+                      totalGdes += total.totalRevenue;
+                  }
+              }
+              html += '</ul>';
+              html += `Total en Gdes: ${totalGdes}<br><br>`;
+
+              html += '<h5>Us:</h5>';
+              html += '<ul>';
+              // Afficher les produits en Us et calculer le total
+              for (const item in totalsByItemCategoryAndCurrency[category].Us) {
+                  if (totalsByItemCategoryAndCurrency[category].Us.hasOwnProperty(item)) {
+                      const total = totalsByItemCategoryAndCurrency[category].Us[item];
+                      html += `<li>${item}: Quantité - ${total.totalQuantity}, Revenu - ${total.totalRevenue}</li>`;
+                      totalUs += total.totalRevenue;
+                  }
+              }
+              html += '</ul>';
+              html += `Total en Us: ${totalUs}<br><br>`;
+          }
+      }
+
+      // Insérer le contenu dans l'élément "resultContainer"
+      resultContainer.innerHTML = html;
+  }
+
+  // Appeler la fonction pour filtrer les ventes par date lorsqu'une date est sélectionnée
+  document.getElementById("date").addEventListener("change", filterSalesByDate);
+
+  // Appeler la fonction pour filtrer les ventes par date lors du chargement de la page
+  filterSalesByDate();
+</script>
+
   
 </body>
  
