@@ -45,11 +45,10 @@
   border: 1px solid #ccc;
   border-radius: 5px;
 }
-td input{ width: 100%;
+td input{ width: 70px;
     height: 100%;
-                 }
-                 td { width: 60px;
-                 }               
+        }
+              
 .container h2 {
   text-align: center;
 }
@@ -93,11 +92,11 @@ center{
 width: 100%;}
 
 #myForm th,tr{
-    width: 280px;
+    width: 175px;
     text-align: center;
 }
-#myForm input, label, select,i,th,td{
-    font-size:small;
+#myForm  th,td{
+    font-size:12px;
      text-align: center;
             }
 #myForm select,input,textarea:focus {
@@ -108,16 +107,21 @@ width: 100%;}
 
     .calculatesection{
         display: flex;
-        width: 300px;
-        margin-left: 30px;
+        width: 175px;
+        margin-left: 10px;
     }
    
 
     .calculatesection input{
         width: 60px;
     }
-    #invoiceTable{
-        width: 300px;
+    #productConsumed th:nth-child(5),
+  #productConsumed td:nth-child(5) {
+    display: none;
+  }
+    #productConsumed{
+        width: 200px;
+        
     }
  </style>
 </head>
