@@ -910,11 +910,19 @@ firebase.auth().onAuthStateChanged(function(user) {
     }
   
     document.addEventListener('DOMContentLoaded', function() {
-  const today = new Date();
-  const formattedToday = today.toISOString().split('T')[0]; // Format YYYY-MM-DD
-  displaySales(formattedToday); // Afficher par défaut les factures d'aujourd'hui
+    const today = new Date();
+    const formattedToday = formatDate(today); // Format YYYY-MM-DD
+    displaySales(formattedToday); // Afficher par défaut les factures d'aujourd'hui
 });
-   
+
+// Fonction pour formater la date au format YYYY-MM-DD
+function formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Ajoute un zéro en tête si nécessaire
+    const day = String(date.getDate()).padStart(2, '0'); // Ajoute un zéro en tête si nécessaire
+    return `${year}-${month}-${day}`;
+}
+
     // Charger les données de la facture sélectionnée dans le formulaire pour édition
     const userList = document.getElementById('invoices');
     userList.addEventListener('click', function(event) {
