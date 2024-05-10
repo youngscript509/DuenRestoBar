@@ -357,7 +357,7 @@ width: 100%;}
                             <input type="text" id="category" name="category"  required>
                           </div>
                           <div><br>
-                            <button for="priceChoice" id="priceChoice1" type="button">Afficher les Prix:</button>
+                            <label for="priceChoice" id="priceChoice1" type="button"> Prix:</label>
                             <select id="priceChoice" name="priceChoice" required>
                              
                             </select>
@@ -604,9 +604,10 @@ addProductOnTable.addEventListener('click', () => {
 // Écouter les changements dans le champ de saisie du produit
 productNameInput.addEventListener('input', fetchAndDisplayProducts);
 
-// Ajouter un écouteur d'événements pour le clic sur le champ priceChoice
-priceChoiceSelect1.addEventListener('click', checkProductAndDisplayPrices);
 
+
+const productInput = document.getElementById('product');
+productInput.addEventListener('change',checkProductAndDisplayPrices);
 
 
 // Fonction pour générer un ID automatique pour la facture
@@ -887,7 +888,7 @@ firebase.auth().onAuthStateChanged(function(user) {
       const userList = document.getElementById('invoices');
       userList.innerHTML = ''; // Réinitialiser la liste des utilisateurs
   
-      let query = db.collection("globalSales");
+      let query = db.collection("globalSales").orderBy("date", "desc");
   
       if (defaultDate === 'today') {
         const today = new Date().toDateString();
