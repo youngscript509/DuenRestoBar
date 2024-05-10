@@ -200,7 +200,7 @@ width: 100%;}
                                <br>
                            
                                
-                                <select  name="choices"  id="paymentmeth" required>
+                                <select  name="paymentmeth"  id="paymentmeth" required>
                                     <option value="cash">cash</option>
                                     <option value="check">check</option>
                                     <option value="card">Credit/Debit card</option>
@@ -273,13 +273,14 @@ width: 100%;}
                                  <input type="number" class="balanceUs" placeholder="0.000" step="0.01" min="0" max="100000" required>
                            </div>
                                 <br>
-                           <select  name="choices"  id="paymentStatut" required>
-                            <option value="check">NON PAY&Eacute;</option>
-                            <option value="cash">PAY&Eacute;</option>
-                            
-                            <option value="card">CREDIT&Eacute;</option>
-                            
-                          </select><br>
+                           <input  name="paymentStatut" type="text"  id="paymentStatut" list="paymentstat" placeholder="Statut" required>
+                           
+                           <datalist id="paymentstat">
+                            <option value="NONPAYE">
+                            <option value="PAYE">
+                            <option value="CREDIT">
+                            </datalist>
+                          <br>
                     
                                
                                 <input type="text" class="vendeur" id="sellerName" placeholder="Vendeur" required readonly><br>
@@ -395,10 +396,13 @@ width: 100%;}
                        
                     <div class="">
                         <div class="card">
-                         
+                          <button id="print" class="newcustomer" onclick="generatePDFDetails();" type="button">Print Repport</button>
                             <div class="card-body">
-                                <div class="metric-value d-inline-block">
-                                    <div id="resultsContainer"></div>
+                              
+                                <div class="metric-value d-inline-block" id="repportgene">
+                                  <center> <input type="date" id="daterepport" style="font-size: large;" required readonly></center>
+                                 
+                                    <div style="margin-top: 30px; margin-left: 30px;" id="resultsContainer"></div>
                                     
                                 </div>
                                 <div class="metric-label d-inline-block float-right text-success font-weight-bold">
@@ -456,6 +460,14 @@ width: 100%;}
    // Set the value of the input field to the current date
    document.getElementById('date').value = formattedDate;
      </script>
+
+<script>
+     
+
+
+  // Set the value of the input field to the current date
+  document.getElementById('daterepport').value = formattedDate;
+    </script>
 
 <script>
  
@@ -599,6 +611,7 @@ addProductOnTable.addEventListener('click', () => {
        row.insertCell().textContent = category;
        
    }
+   CalculerProduct();
 });
 
 // Écouter les changements dans le champ de saisie du produit
@@ -646,9 +659,31 @@ function generateInvoiceId() {
  </script>
 
 
+<script>
+  function generatePDFDetails() {
+    const element = document.getElementById('repportgene');
+
+    // Options pour la conversion en PDF
+    const options = {
+      margin: 0,
+      filename: 'order.pdf',
+      image: { type: 'jpeg', quality: 1 }, // Augmenter la qualité de l'image
+      html2canvas: { scale: 2 }, // Augmenter l'échelle
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    // Conversion de l'élément en PDF
+    html2pdf()
+      .from(element)
+      .set(options)
+      .save();
+  }
+</script>
+
+
 
 <script>
-   document.getElementById('Confirm').addEventListener('click', function() {
+   function CalculerProduct() {
    // Récupérer les totaux Gdes et Us
    const totalGdes = parseFloat(document.querySelector('.totalGdes').value);
    const totalUs = parseFloat(document.querySelector('.totalUs').value);
@@ -724,8 +759,9 @@ function generateInvoiceId() {
    document.querySelector('.balanceUs').value = balanceUs;
    document.querySelector('.changeGdes').value = changeGdes;
    document.querySelector('.changeUs').value = changeUs;
-});
+};
 
+document.getElementById('Confirm').addEventListener('click', CalculerProduct);
 </script>
  
  
@@ -772,6 +808,7 @@ firebase.auth().onAuthStateChanged(function(user) {
   
       $("#deleteRow").click(function() {
         $("#productConsumed tbody tr:last").remove();
+        CalculerProduct();
       });
     });
   </script>
@@ -977,6 +1014,9 @@ function formatDate(date) {
             document.querySelector('.changeUs').value = data.changeUs;
             document.querySelector('.balanceGdes').value = data.balanceGdes;
             document.querySelector('.balanceUs').value = data.balanceUs;
+            document.querySelector('.totalUs').value = data.totalUs;
+            document.querySelector('.totalGdes').value = data.totalGdes;
+            document.getElementById('paymentStatut').value = data.paymentStatut;
            
   
   
