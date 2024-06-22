@@ -355,7 +355,7 @@ width: 100%;}
                           <datalist id="productList"></datalist>
                           <div>
                             <label for="category">Category:</label>
-                            <input type="text" id="category" name="category"  required>
+                            <input type="text" id="category" name="category"  required readonly>
                           </div>
                           <div><br>
                             <label for="priceChoice" id="priceChoice1" type="button"> Prix:</label>
@@ -379,6 +379,7 @@ width: 100%;}
                           <button id="print" class="newcustomer" onclick="generatePDF();" type="button"> print</button>
                       
                           <button id="Confirm" class="newcustomer" type="button"> Confirm</button>
+                          <button id="moreInvoice" class="newcustomer" type="button"> Plus de Facture</button>
           
                         </div>
                        
@@ -921,68 +922,136 @@ firebase.auth().onAuthStateChanged(function(user) {
     });
   
   
-    // Fonction pour afficher les ventes
-    function displaySales(defaultDate) {
-      const userList = document.getElementById('invoices');
-      userList.innerHTML = ''; // Réinitialiser la liste des utilisateurs
-  
-      let query = db.collection("globalSales").orderBy("date", "desc");
-  
-      if (defaultDate === 'today') {
-        const today = new Date().toDateString();
-        query = query.where("date", "==", today);
-      } else if (defaultDate) {
-        query = query.where("date", "==", defaultDate);
-      }
-  
-    query.get().then(function(querySnapshot) {
-    querySnapshot.forEach(function(doc) {
-        const data = doc.data();
-        const li = document.createElement('li');
-        
-        // Créer des éléments span pour chaque donnée
-        const customerNameSpan = document.createElement('span');
-        customerNameSpan.textContent = data.customerName;
-        
-        const totalGdesSpan = document.createElement('span');
-        totalGdesSpan.textContent = `${data.totalGdes} Gdes`;
-        
-        const totalUsSpan = document.createElement('span');
-        totalUsSpan.textContent = `${data.totalUs} Us`;
-        
-        const timeSpan = document.createElement('span');
-        timeSpan.textContent = data.time;
+ // Fonction pour afficher les ventes
+ function displaySales(defaultDate) {
+            const userList = document.getElementById('invoices');
+            userList.innerHTML = ''; // Réinitialiser la liste des utilisateurs
 
-        const seller = document.createElement('span');
-        seller.textContent = data.sellerName;
-        
-        // Créer le bouton d'édition
-        const editBtn = document.createElement('button');
-        editBtn.textContent = 'Edit';
-        editBtn.setAttribute('data-id', doc.id);
-        editBtn.classList.add('editBtn');
-        
-        // Ajouter tous les éléments à la balise li
-        li.appendChild(customerNameSpan);
-        li.appendChild(document.createTextNode(' - ')); // Ajouter un espace
-        li.appendChild(totalGdesSpan);
-        li.appendChild(document.createTextNode(' - ')); // Ajouter un espace
-        li.appendChild(totalUsSpan);
-        li.appendChild(document.createTextNode(' - ')); // Ajouter un espace
-        li.appendChild(timeSpan);
-        li.appendChild(document.createTextNode(' -')); // Ajouter un espace
-        li.appendChild(seller);
-        li.appendChild(document.createTextNode(' ')); // Ajouter un espace
-        li.appendChild(editBtn);
-        
-        // Ajouter la balise li à la liste
-        userList.appendChild(li);
-    });
-}).catch(function(error) {
-        console.error("Error getting documents: ", error);
-      });
-    }
-  
+            let query = db.collection("globalSales").orderBy("date", "desc");
+
+            if (defaultDate === 'today') {
+                const today = new Date().toDateString();
+                query = query.where("date", "==", today);
+            } else if (defaultDate) {
+                query = query.where("date", "==", defaultDate);
+            }
+
+            query.get().then(function(querySnapshot) {
+                querySnapshot.forEach(function(doc) {
+                    const data = doc.data();
+                    const li = document.createElement('li');
+
+                    // Créer des éléments span pour chaque donnée
+                    const customerNameSpan = document.createElement('span');
+                    customerNameSpan.textContent = data.customerName;
+
+                    const totalGdesSpan = document.createElement('span');
+                    totalGdesSpan.textContent = `${data.totalGdes} Gdes`;
+
+                    const totalUsSpan = document.createElement('span');
+                    totalUsSpan.textContent = `${data.totalUs} Us`;
+
+                    const timeSpan = document.createElement('span');
+                    timeSpan.textContent = data.time;
+
+                    const seller = document.createElement('span');
+                    seller.textContent = data.sellerName;
+
+                    // Créer le bouton d'édition
+                    const editBtn = document.createElement('button');
+                    editBtn.textContent = 'Edit';
+                    editBtn.setAttribute('data-id', doc.id);
+                    editBtn.classList.add('editBtn');
+
+                    // Ajouter tous les éléments à la balise li
+                    li.appendChild(customerNameSpan);
+                    li.appendChild(document.createTextNode(' - ')); // Ajouter un espace
+                    li.appendChild(totalGdesSpan);
+                    li.appendChild(document.createTextNode(' - ')); // Ajouter un espace
+                    li.appendChild(totalUsSpan);
+                    li.appendChild(document.createTextNode(' - ')); // Ajouter un espace
+                    li.appendChild(timeSpan);
+                    li.appendChild(document.createTextNode(' -')); // Ajouter un espace
+                    li.appendChild(seller);
+                    li.appendChild(document.createTextNode(' ')); // Ajouter un espace
+                    li.appendChild(editBtn);
+
+                    // Ajouter la balise li à la liste
+                    userList.appendChild(li);
+                });
+            }).catch(function(error) {
+                console.error("Error getting documents: ", error);
+            });
+        }
+
+        // Fonction pour afficher les factures des 2 derniers jours
+        function displayLastTwoDaysInvoices() {
+            const userList = document.getElementById('invoices');
+            userList.innerHTML = ''; // Réinitialiser la liste des utilisateurs
+
+            const now = new Date();
+            const twoDaysAgo = new Date();
+            twoDaysAgo.setDate(now.getDate() - 2);
+
+            const startDate = twoDaysAgo.toISOString().split('T')[0]; // Date de début (il y a 2 jours)
+            const endDate = now.toISOString().split('T')[0]; // Date de fin (aujourd'hui)
+
+            let query = db.collection("globalSales")
+                .where("date", ">=", startDate)
+                .where("date", "<=", endDate)
+                .orderBy("date", "desc");
+
+            query.get().then(function(querySnapshot) {
+                querySnapshot.forEach(function(doc) {
+                    const data = doc.data();
+                    const li = document.createElement('li');
+
+                    // Créer des éléments span pour chaque donnée
+                    const customerNameSpan = document.createElement('span');
+                    customerNameSpan.textContent = data.customerName;
+
+                    const totalGdesSpan = document.createElement('span');
+                    totalGdesSpan.textContent = `${data.totalGdes} Gdes`;
+
+                    const totalUsSpan = document.createElement('span');
+                    totalUsSpan.textContent = `${data.totalUs} Us`;
+
+                    const timeSpan = document.createElement('span');
+                    timeSpan.textContent = data.time;
+
+                    const seller = document.createElement('span');
+                    seller.textContent = data.sellerName;
+
+                    // Créer le bouton d'édition
+                    const editBtn = document.createElement('button');
+                    editBtn.textContent = 'Edit';
+                    editBtn.setAttribute('data-id', doc.id);
+                    editBtn.classList.add('editBtn');
+
+                    // Ajouter tous les éléments à la balise li
+                    li.appendChild(customerNameSpan);
+                    li.appendChild(document.createTextNode(' - ')); // Ajouter un espace
+                    li.appendChild(totalGdesSpan);
+                    li.appendChild(document.createTextNode(' - ')); // Ajouter un espace
+                    li.appendChild(totalUsSpan);
+                    li.appendChild(document.createTextNode(' - ')); // Ajouter un espace
+                    li.appendChild(timeSpan);
+                    li.appendChild(document.createTextNode(' -')); // Ajouter un espace
+                    li.appendChild(seller);
+                    li.appendChild(document.createTextNode(' ')); // Ajouter un espace
+                    li.appendChild(editBtn);
+
+                    // Ajouter la balise li à la liste
+                    userList.appendChild(li);
+                });
+            }).catch(function(error) {
+                console.error("Error getting documents: ", error);
+            });
+        }
+
+        // Ajouter un écouteur d'événement pour le bouton "Afficher les factures des 2 derniers jours"
+        document.getElementById('moreInvoice').addEventListener('click', displayLastTwoDaysInvoices);
+    </script>
     document.addEventListener('DOMContentLoaded', function() {
     const today = new Date();
     const formattedToday = formatDate(today); // Format YYYY-MM-DD
