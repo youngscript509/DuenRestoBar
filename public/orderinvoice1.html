@@ -1143,26 +1143,6 @@ function formatDate(date) {
   </script>
 
 <script>
-  // Fonction pour récupérer l'utilisateur connecté
-  function getCurrentUser() {
-      const user = firebase.auth().currentUser;
-      if (user) {
-          return db.collection('users').doc(user.uid).get()
-              .then(function(doc) {
-                  if (doc.exists) {
-                      return doc.data().name;
-                  } else {
-                      throw new Error("No such document!");
-                  }
-              })
-              .catch(function(error) {
-                  console.error("Error getting document: ", error);
-              });
-      } else {
-          return Promise.reject(new Error("No user is currently logged in."));
-      }
-  }
-
   // Fonction pour récupérer les ventes en fonction de la date sélectionnée et afficher les totaux par jour avec la liste des produits et le grand total pour chaque collection
   function filterSalesByDate() {
       const selectedDate = document.getElementById('date').value; // Récupérer la date sélectionnée dans l'input
@@ -1173,66 +1153,57 @@ function formatDate(date) {
           return;
       }
 
-      // Récupérer l'utilisateur connecté
-      getCurrentUser().then(function(currentUserName) {
-          // Définir les catégories disponibles
-          const categories = ['drink', 'food', 'smoke', 'spec18', 'pool'];
+      // Définir les catégories disponibles
+      const categories = ['drink', 'food', 'smoke','spec18', 'pool'];
 
-          // Initialiser l'objet pour stocker les totaux par article, par catégorie et par devise
-          const totalsByItemCategoryAndCurrency = {};
+      // Initialiser l'objet pour stocker les totaux par article, par catégorie et par devise
+      const totalsByItemCategoryAndCurrency = {};
 
-          // Récupérer la collection de ventes pour la date sélectionnée et le vendeur connecté
-          db.collection('globalSales')
-              .where("date", "==", selectedDate)
-              .where("sellerName", "==", currentUserName)
-              .get()
-              .then(function(querySnapshot) {
-                  querySnapshot.forEach(function(doc) {
-                      const data = doc.data();
-                      const products = data.products;
+      // Récupérer la collection de ventes pour la date sélectionnée
+      db.collection('globalSales').where("date", "==", selectedDate).get()
+          .then(function(querySnapshot) {
+              querySnapshot.forEach(function(doc) {
+                  const data = doc.data();
+                  const products = data.products;
 
-                      // Parcourir les produits de cette vente
-                      products.forEach(function(product) {
-                          const category = product.category;
-                          const currency = product.currency;
-                          const quantity = parseInt(product.quantity);
-                          const price = parseFloat(product.price);
-                          const revenue = quantity * price;
+                  // Parcourir les produits de cette vente
+                  products.forEach(function(product) {
+                      const category = product.category;
+                      const currency = product.currency;
+                      const quantity = parseInt(product.quantity);
+                      const price = parseFloat(product.price);
+                      const revenue = quantity * price;
 
-                          // Vérifier si la catégorie est une catégorie valide
-                          if (categories.includes(category)) {
-                              // Si la catégorie n'existe pas encore dans les totaux, l'initialiser
-                              if (!totalsByItemCategoryAndCurrency.hasOwnProperty(category)) {
-                                  totalsByItemCategoryAndCurrency[category] = { Gdes: {}, Us: {} };
-                              }
-
-                              // Vérifier si l'article existe déjà dans la devise spécifiée
-                              const itemKey = product.item.toLowerCase(); // Utiliser le nom de l'article comme clé, en minuscules pour éviter les doublons
-                              if (!totalsByItemCategoryAndCurrency[category][currency].hasOwnProperty(itemKey)) {
-                                  // Si l'article n'existe pas encore, l'initialiser avec la quantité et le revenu actuels
-                                  totalsByItemCategoryAndCurrency[category][currency][itemKey] = {
-                                      totalQuantity: quantity,
-                                      totalRevenue: revenue
-                                  };
-                              } else {
-                                  // Si l'article existe déjà, mettre à jour la quantité et le revenu
-                                  totalsByItemCategoryAndCurrency[category][currency][itemKey].totalQuantity += quantity;
-                                  totalsByItemCategoryAndCurrency[category][currency][itemKey].totalRevenue += revenue;
-                              }
+                      // Vérifier si la catégorie est une catégorie valide
+                      if (categories.includes(category)) {
+                          // Si la catégorie n'existe pas encore dans les totaux, l'initialiser
+                          if (!totalsByItemCategoryAndCurrency.hasOwnProperty(category)) {
+                              totalsByItemCategoryAndCurrency[category] = { Gdes: {}, Us: {} };
                           }
-                      });
-                  });
 
-                  // Afficher les totaux par catégorie, par article et par devise
-                  displayTotalSalesByCategoryAndCurrency(totalsByItemCategoryAndCurrency);
-              })
-              .catch(function(error) {
-                  console.error('Error getting documents: ', error);
+                          // Vérifier si l'article existe déjà dans la devise spécifiée
+                          const itemKey = product.item.toLowerCase(); // Utiliser le nom de l'article comme clé, en minuscules pour éviter les doublons
+                          if (!totalsByItemCategoryAndCurrency[category][currency].hasOwnProperty(itemKey)) {
+                              // Si l'article n'existe pas encore, l'initialiser avec la quantité et le revenu actuels
+                              totalsByItemCategoryAndCurrency[category][currency][itemKey] = {
+                                  totalQuantity: quantity,
+                                  totalRevenue: revenue
+                              };
+                          } else {
+                              // Si l'article existe déjà, mettre à jour la quantité et le revenu
+                              totalsByItemCategoryAndCurrency[category][currency][itemKey].totalQuantity += quantity;
+                              totalsByItemCategoryAndCurrency[category][currency][itemKey].totalRevenue += revenue;
+                          }
+                      }
+                  });
               });
-      }).catch(function(error) {
-          console.error('Error getting current user: ', error);
-          alert('Veuillez vous connecter pour afficher les ventes.');
-      });
+
+              // Afficher les totaux par catégorie, par article et par devise
+              displayTotalSalesByCategoryAndCurrency(totalsByItemCategoryAndCurrency);
+          })
+          .catch(function(error) {
+              console.error('Error getting documents: ', error);
+          });
   }
 
   // Fonction pour afficher les totaux par catégorie, par article et par devise
@@ -1282,21 +1253,11 @@ function formatDate(date) {
       resultContainer.innerHTML = html;
   }
 
-   displayTotalSalesByCategoryAndCurrency();
+  // Appeler la fonction pour filtrer les ventes par date lorsqu'une date est sélectionnée
+  document.getElementById("date").addEventListener("change", filterSalesByDate);
 
-  
-  // Attendre que Firebase Auth soit prêt avant d'ajouter l'écouteur d'événement
-  firebase.auth().onAuthStateChanged(function(user) {
-      if (user) {
-          // Appeler la fonction pour filtrer les ventes par date lorsqu'une date est sélectionnée
-          document.getElementById("date").addEventListener("change", filterSalesByDate);
-
-          // Appeler la fonction pour filtrer les ventes par date lors du chargement de la page
-          filterSalesByDate();
-      } else {
-          alert('Veuillez vous connecter pour afficher les ventes.');
-      }
-  });
+  // Appeler la fonction pour filtrer les ventes par date lors du chargement de la page
+  filterSalesByDate();
 </script>
   
 </body>
