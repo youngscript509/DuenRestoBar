@@ -1282,6 +1282,9 @@ function formatDate(date) {
       resultContainer.innerHTML = html;
   }
 
+   displayTotalSalesByCategoryAndCurrency();
+
+  
   // Attendre que Firebase Auth soit prêt avant d'ajouter l'écouteur d'événement
   firebase.auth().onAuthStateChanged(function(user) {
       if (user) {
