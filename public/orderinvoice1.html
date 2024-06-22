@@ -991,7 +991,7 @@ firebase.auth().onAuthStateChanged(function(user) {
 
             const now = new Date();
             const twoDaysAgo = new Date();
-            twoDaysAgo.setDate(now.getDate() - 2);
+            twoDaysAgo.setDate(now.getDate() - 1);
 
             const startDate = twoDaysAgo.toISOString().split('T')[0]; // Date de début (il y a 2 jours)
             const endDate = now.toISOString().split('T')[0]; // Date de fin (aujourd'hui)
