@@ -175,10 +175,11 @@ width: 100%;}
                            
                                
                                 <select  name="choices"  id="paymentmeth" required>
-                                    <option value="cash">cash</option>
-                                    <option value="check">check</option>
-                                    <option value="card">Credit/Debit card</option>
-                                    <option value="moncash">moncash</option>
+                                    <option value="cash" name="cash">cash</option>
+                                    <option value="check" name="check">check</option>
+                                    <option value="card" name="card">Credit/Debit card</option>
+                                    <option value="moncash" name="moncash">moncash</option>
+                                    <option value="zelle" name="zelle">Zelle</option>
                                   </select>
                             <br>
                         </center><center>
@@ -1145,11 +1146,8 @@ displaySalesData();
 
 </script>
   
-   <script>
- 
-
-
-// Attente du chargement du DOM
+<script>
+    // Attente du chargement du DOM
 document.addEventListener('DOMContentLoaded', function () {
     // Récupération du bouton Confirm
     const confirmButton = document.getElementById('Confirm');
@@ -1160,39 +1158,57 @@ document.addEventListener('DOMContentLoaded', function () {
         const idInvoiceElement = document.getElementById('idInvoicedisplay');
         const idInvoice = idInvoiceElement.textContent.trim();
         
+        // Initialisation des totaux
+        let totalGourde = 0;
+        let totalUs = 0;
+        const paymentMethodTotals = {
+            moncash: 0,
+            cash: 0,
+            zelle: 0,
+            card: 0,
+            check: 0,
+            paypal: 0,
+            wiretransfert: 0
+        };
+
         // Recherche du document dans la collection globalesales
         db.collection('globalSales').where('idInvoice', '==', idInvoice).get()
             .then(querySnapshot => {
                 if (!querySnapshot.empty) {
                     querySnapshot.forEach(doc => {
-                        const documentId = doc.id;
                         const documentData = doc.data();
 
-                        // Vérification de l'existence des champs statut et paymentmethod
-                        if (documentData.hasOwnProperty('statut') && documentData.hasOwnProperty('paymentmethod')) {
-                            // Mise à jour des valeurs des champs statut et paymentmethod avec les valeurs des selects respectifs
-                            const paymentMethodSelect = document.getElementById('paymentmeth');
-                            const paymentStatutSelect = document.getElementById('paymentStatut');
-                            const newPaymentMethod = paymentMethodSelect.value;
-                            const newPaymentStatut = paymentStatutSelect.value;
-
-                            return db.collection('globalSales').doc(documentId).update({
-                                paymentmethod: newPaymentMethod,
-                                statut: newPaymentStatut
-                            });
-                        } else {
-                            // Enregistrement des valeurs des selects respectifs
-                            const paymentMethodSelect = document.getElementById('paymentmeth');
-                            const paymentStatutSelect = document.getElementById('paymentStatut');
-                            const paymentMethod = paymentMethodSelect.value;
-                            const paymentStatut = paymentStatutSelect.value;
-
-                            return db.collection('globalSales').doc(documentId).update({
-                                paymentmethod: paymentMethod,
-                                statut: paymentStatut
-                            });
+                        // Calcul de la grande total Gourde et total Us
+                        if (documentData.currency === 'Gourde') {
+                            totalGourde += documentData.amount;
+                        } else if (documentData.currency === 'USD') {
+                            totalUs += documentData.amount;
                         }
+
+                        // Calcul des totaux par méthode de paiement
+                        const paymentMethod = documentData.paymentmethod;
+                        if (paymentMethod in paymentMethodTotals) {
+                            paymentMethodTotals[paymentMethod] += documentData.amount;
+                        }
+
+                        // Mise à jour des valeurs des champs statut et paymentmethod avec les valeurs des selects respectifs
+                        const paymentMethodSelect = document.getElementById('paymentmeth');
+                        const paymentStatutSelect = document.getElementById('paymentStatut');
+                        const newPaymentMethod = paymentMethodSelect.value;
+                        const newPaymentStatut = paymentStatutSelect.value;
+
+                        return db.collection('globalSales').doc(doc.id).update({
+                            paymentmethod: newPaymentMethod,
+                            statut: newPaymentStatut
+                        });
                     });
+
+                    // Affichage des totaux
+                    console.log("Total Gourde:", totalGourde);
+                    console.log("Total USD:", totalUs);
+                    console.log("Totaux par méthode de paiement:", paymentMethodTotals);
+
+                    // Vous pouvez maintenant mettre à jour votre interface avec ces valeurs calculées
                 } else {
                     console.log("Aucun document trouvé avec l'ID de facture spécifié.");
                 }
@@ -1203,7 +1219,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-   </script>  
+</script>
 
 
 <script>
