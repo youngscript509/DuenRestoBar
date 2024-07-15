@@ -396,7 +396,7 @@ width: 100%;}
                         
                        
                     <div class="">
-                      <div class="card">
+                      <div class="card" style="width: 100%;">
                           <button id="print" class="newcustomer" onclick="generatePDFDetails();" type="button">Print Repport</button>
                             <div class="card-body">
                               
@@ -413,7 +413,9 @@ width: 100%;}
                           </div>
                           <div class="card-body bg-light p-t-40 p-b-40">
                               <div id="sparkline-revenue3"></div>
+                              <div id="listperpayment"></div>
                           </div>
+                          
                           <div class="card-footer text-center bg-white">
                               <a href="#" class="card-link">View Details</a>
                           </div>
@@ -424,9 +426,9 @@ width: 100%;}
                     </div>
                     
                 </div>
-                
+              
             </div>
-        
+          
         </div>
         
       
@@ -1267,7 +1269,72 @@ function formatDate(date) {
       }
   });
 </script>
+<script>
+    // Function to display sales by payment method for today
+    async function displaySalesByPaymentMethodToday() {
+        const today = new Date().toISOString().split('T')[0]; // Get today's date in 'YYYY-MM-DD' format
 
+        try {
+            // Query to get sales for today
+            const querySnapshot = await db.collection('globalSales')
+                .where('date', '==', today)
+                .get();
+
+            // Object to store totals by payment method
+            const totalsByPaymentMethod = {
+                moncash: { Gdes: 0, Us: 0 },
+                cash: { Gdes: 0, Us: 0 },
+                zelle: { Gdes: 0, Us: 0 },
+                card: { Gdes: 0, Us: 0 },
+                check: { Gdes: 0, Us: 0 },
+                paypal: { Gdes: 0, Us: 0 },
+                wiretransfert: { Gdes: 0, Us: 0 }
+            };
+
+            // Process each document in the query snapshot
+            querySnapshot.forEach(doc => {
+                const data = doc.data();
+                const paymentMethod = data.paymentmeth.toLowerCase(); // Adjust the field name based on your actual data structure
+                const products = data.products;
+
+                // Calculate totals for each payment method and currency
+                products.forEach(product => {
+                    const currency = product.currency.toLowerCase(); // Assuming currency is in lowercase
+                    const price = parseFloat(product.price); // Convert price to float
+                    const quantity = parseInt(product.quantity); // Convert quantity to integer
+
+                    // Check if price and quantity are valid numbers
+                    if (!isNaN(price) && !isNaN(quantity)) {
+                        const revenue = price * quantity;
+
+                        // Accumulate totals based on payment method and currency
+                        if (totalsByPaymentMethod.hasOwnProperty(paymentMethod) && totalsByPaymentMethod[paymentMethod].hasOwnProperty(currency)) {
+                            totalsByPaymentMethod[paymentMethod][currency] += revenue;
+                        }
+                    }
+                });
+            });
+
+            // Display totals in the specified div
+            const listPerPaymentDiv = document.getElementById('listperpayment');
+            listPerPaymentDiv.innerHTML = '<h3>Sales by Payment Method for Today</h3>';
+
+            for (const method in totalsByPaymentMethod) {
+                if (totalsByPaymentMethod.hasOwnProperty(method)) {
+                    const totals = totalsByPaymentMethod[method];
+                    listPerPaymentDiv.innerHTML += `<h4>${method.toUpperCase()}</h4>`;
+                    listPerPaymentDiv.innerHTML += `Total in Gdes: ${totals.Gdes}<br>`;
+                    listPerPaymentDiv.innerHTML += `Total in Us: ${totals.Us}<br><br>`;
+                }
+            }
+        } catch (error) {
+            console.error('Error retrieving sales data:', error);
+        }
+    }
+
+    // Call the function when the page is loaded
+    displaySalesByPaymentMethodToday();
+</script>
 
 </body>
  

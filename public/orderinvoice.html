@@ -970,31 +970,27 @@ function generateInvoiceId() {
   </script>
   
 
-
- 
-
- 
 <script>
-
-// Fonction pour afficher les détails de la facture lors du clic sur Checkout
+    // Fonction pour afficher les détails de la facture lors du clic sur Checkout
 async function showInvoiceDetails(invoiceId) {
     try {
         const invoiceRef = db.collection('globalSales').doc(invoiceId);
         const invoiceDoc = await invoiceRef.get();
         const invoiceData = invoiceDoc.data();
-        
+
         // Remplir les champs avec les détails de la facture
         document.getElementById('dateInvoicedis').value = invoiceData.date;
         document.getElementById('timeInvoicedis').value = invoiceData.time;
         document.getElementById('idInvoicedisplay').textContent = `Invoice Id: ${invoiceData.invoiceId}`;
         document.getElementById('fullname').value = invoiceData.name;
         document.getElementById('sellerNameInvoicedis').value = invoiceData.sellerName;
-        document.querySelector('.totalGdes').value = invoiceData.totalGdes;
-        document.querySelector('.totalUs').value = invoiceData.totalUs;
 
         // Afficher la liste des produits dans le tableau
         const tableBody = document.querySelector('#invoiceTable tbody');
         tableBody.innerHTML = '';
+        let totalGeneral = 0;
+        const paymentMethodTotals = {};
+
         invoiceData.products.forEach(product => {
             const row = tableBody.insertRow();
             row.innerHTML = `
@@ -1003,71 +999,32 @@ async function showInvoiceDetails(invoiceId) {
                 <td>${product.priceCurrency}</td>
                 <td>${product.quantity}</td>
             `;
+            // Calcul du total général
+            totalGeneral += product.productPrice * product.quantity;
+
+            // Calcul des totaux par méthode de paiement
+            const paymentMethod = product.paymentMethod.toLowerCase();
+            if (paymentMethod in paymentMethodTotals) {
+                paymentMethodTotals[paymentMethod] += product.productPrice * product.quantity;
+            } else {
+                paymentMethodTotals[paymentMethod] = product.productPrice * product.quantity;
+            }
         });
 
-        // Calculer et remplir les autres champs
-        // ...
+        // Afficher les totaux généraux et par méthode de paiement
+        document.querySelector('.totalGeneral').textContent = `Total General: ${totalGeneral}`;
+        console.log("Totaux par méthode de paiement:", paymentMethodTotals);
+
+        // Mettre à jour les totaux dans Firebase
+        await invoiceRef.update({
+            totalGeneral: totalGeneral,
+            paymentMethodTotals: paymentMethodTotals
+        });
+
     } catch (error) {
         console.error('Erreur lors de l\'affichage des détails de la facture :', error);
     }
 }
-async function displaySalesData() {
-    try {
-        const globalSalesRef = db.collection('globalSales');
-        const todayDate = new Date(); // Obtenir la date d'aujourd'hui
-        
-        // Formater la date d'aujourd'hui dans le format 'YYYY-MM-DD'
-        const todayDateString = todayDate.toISOString().split('T')[0]; 
-        
-        const querySnapshot = await globalSalesRef
-            .where('date', '==', todayDateString) // Comparaison directe avec la chaîne de date
-            .get();
-        
-        const tableBody = document.querySelector('#invoicesTable tbody');
-        tableBody.innerHTML = '';
-
-        querySnapshot.forEach(async doc => {
-            const invoiceData = doc.data();
-            const totalProduct = calculateTotalProduct(invoiceData.products);
-            const totalGdes = await calculateTotalByCategory(invoiceData.products, 'Gdes');
-            const totalUs = await calculateTotalByCategory(invoiceData.products, 'Us');
-
-            const row = tableBody.insertRow();
-            row.innerHTML = `
-                <td>${invoiceData.invoiceId}</td>
-                <td>${invoiceData.name}</td>
-                <td>${totalProduct}</td>
-                <td>${totalGdes}</td>
-                <td>${totalUs}</td>
-                <td><button class="checkout-button" onclick="showInvoiceDetails('${doc.id}')">Checkout</button></td>
-            `;
-        });
-    } catch (error) {
-        console.error('Erreur lors de la récupération des factures :', error);
-    }
-}
-
-// Fonction pour calculer le total des produits dans une facture
-function calculateTotalProduct(products) {
-    let total = 0;
-    products.forEach(product => {
-        total += product.quantity;
-    });
-    return total;
-}
-
-// Fonction pour calculer le total par catégorie (Gdes ou Us) dans une facture
-async function calculateTotalByCategory(products, priceCurrency) {
-    let total = 0;
-    for (const product of products) {
-        if (product.priceCurrency === priceCurrency) {
-            total += product.quantity * product.productPrice; // Multiplication par le prix du produit
-        }
-    }
-    return total;
-}
-
-displaySalesData();
 
 </script>
 
@@ -1146,8 +1103,11 @@ displaySalesData();
 
 </script>
   
-<script>
-    // Attente du chargement du DOM
+   <script>
+ 
+
+
+// Attente du chargement du DOM
 document.addEventListener('DOMContentLoaded', function () {
     // Récupération du bouton Confirm
     const confirmButton = document.getElementById('Confirm');
@@ -1158,57 +1118,39 @@ document.addEventListener('DOMContentLoaded', function () {
         const idInvoiceElement = document.getElementById('idInvoicedisplay');
         const idInvoice = idInvoiceElement.textContent.trim();
         
-        // Initialisation des totaux
-        let totalGourde = 0;
-        let totalUs = 0;
-        const paymentMethodTotals = {
-            moncash: 0,
-            cash: 0,
-            zelle: 0,
-            card: 0,
-            check: 0,
-            paypal: 0,
-            wiretransfert: 0
-        };
-
         // Recherche du document dans la collection globalesales
         db.collection('globalSales').where('idInvoice', '==', idInvoice).get()
             .then(querySnapshot => {
                 if (!querySnapshot.empty) {
                     querySnapshot.forEach(doc => {
+                        const documentId = doc.id;
                         const documentData = doc.data();
 
-                        // Calcul de la grande total Gourde et total Us
-                        if (documentData.currency === 'Gourde') {
-                            totalGourde += documentData.amount;
-                        } else if (documentData.currency === 'USD') {
-                            totalUs += documentData.amount;
+                        // Vérification de l'existence des champs statut et paymentmethod
+                        if (documentData.hasOwnProperty('statut') && documentData.hasOwnProperty('paymentmethod')) {
+                            // Mise à jour des valeurs des champs statut et paymentmethod avec les valeurs des selects respectifs
+                            const paymentMethodSelect = document.getElementById('paymentmeth');
+                            const paymentStatutSelect = document.getElementById('paymentStatut');
+                            const newPaymentMethod = paymentMethodSelect.value;
+                            const newPaymentStatut = paymentStatutSelect.value;
+
+                            return db.collection('globalSales').doc(documentId).update({
+                                paymentmethod: newPaymentMethod,
+                                statut: newPaymentStatut
+                            });
+                        } else {
+                            // Enregistrement des valeurs des selects respectifs
+                            const paymentMethodSelect = document.getElementById('paymentmeth');
+                            const paymentStatutSelect = document.getElementById('paymentStatut');
+                            const paymentMethod = paymentMethodSelect.value;
+                            const paymentStatut = paymentStatutSelect.value;
+
+                            return db.collection('globalSales').doc(documentId).update({
+                                paymentmethod: paymentMethod,
+                                statut: paymentStatut
+                            });
                         }
-
-                        // Calcul des totaux par méthode de paiement
-                        const paymentMethod = documentData.paymentmethod;
-                        if (paymentMethod in paymentMethodTotals) {
-                            paymentMethodTotals[paymentMethod] += documentData.amount;
-                        }
-
-                        // Mise à jour des valeurs des champs statut et paymentmethod avec les valeurs des selects respectifs
-                        const paymentMethodSelect = document.getElementById('paymentmeth');
-                        const paymentStatutSelect = document.getElementById('paymentStatut');
-                        const newPaymentMethod = paymentMethodSelect.value;
-                        const newPaymentStatut = paymentStatutSelect.value;
-
-                        return db.collection('globalSales').doc(doc.id).update({
-                            paymentmethod: newPaymentMethod,
-                            statut: newPaymentStatut
-                        });
                     });
-
-                    // Affichage des totaux
-                    console.log("Total Gourde:", totalGourde);
-                    console.log("Total USD:", totalUs);
-                    console.log("Totaux par méthode de paiement:", paymentMethodTotals);
-
-                    // Vous pouvez maintenant mettre à jour votre interface avec ces valeurs calculées
                 } else {
                     console.log("Aucun document trouvé avec l'ID de facture spécifié.");
                 }
@@ -1219,7 +1161,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-</script>
+   </script>  
 
 
 <script>
