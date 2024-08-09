@@ -207,8 +207,12 @@
                                         <select name="paymentmeth" id="paymentmeth" required>
                                     <option value="cash">cash</option>
                                     <option value="check">check</option>
-                                    <option value="card">Credit/Debit card</option>
                                     <option value="moncash">moncash</option>
+                                    <option value="virement">virement</option>
+                                    <option value="zelle">zelle</option>
+                                    <option value="paypal">paypal</option>
+                                    <option value="card">Credit/Debit card</option>
+                                    
                                   </select>
                                         <br>
                                     </center>
@@ -380,7 +384,6 @@
                                 <button id="print" class="newcustomer" onclick="generatePDF();" type="button"> print</button>
 
                                 <button id="Confirm" class="newcustomer" type="button"> Confirm</button>
-                                <button id="moreInvoice" class="newcustomer" type="button"> Plus de Facture</button>
 
                             </div>
 
@@ -1168,7 +1171,8 @@
                 const categories = ['drink', 'food', 'room', 'spec18', 'pool'];
 
                 // Initialiser l'objet pour stocker les totaux par article, par catégorie et par devise
-                const totalsByItemCategoryAndCurrency = {};
+                const totalsByItemCategoryAndCurrency = [];
+                const salesData = [];
 
                 // Récupérer la collection de ventes pour la date sélectionnée et le vendeur connecté
                 db.collection('globalSales')
@@ -1178,6 +1182,7 @@
                     .then(function(querySnapshot) {
                         querySnapshot.forEach(function(doc) {
                             const data = doc.data();
+                            salesData.push(data);
                             const products = data.products;
 
                             // Parcourir les produits de cette vente
@@ -1216,7 +1221,7 @@
                         });
 
                         // Afficher les totaux par catégorie, par article et par devise
-                        displayTotalSalesByCategoryAndCurrency(totalsByItemCategoryAndCurrency);
+                        displayTotalSalesByCategoryAndCurrency(totalsByItemCategoryAndCurrency, salesData);
                     })
                     .catch(function(error) {
                         console.error('Error getting documents: ', error);
@@ -1228,12 +1233,26 @@
         }
 
         // Fonction pour afficher les totaux par catégorie, par article et par devise
-        function displayTotalSalesByCategoryAndCurrency(totalsByItemCategoryAndCurrency) {
+        function displayTotalSalesByCategoryAndCurrency(totalsByItemCategoryAndCurrency, salesData) {
             const resultContainer = document.getElementById('resultsContainer');
             resultContainer.innerHTML = ''; // Effacer le contenu précédent
 
             // Variables pour stocker les totaux par méthode de paiement
             const paymentMethodTotals = {};
+            const paymentStatusTotals = {
+                PAYE: {
+                    totalGdes: 0,
+                    totalUs: 0
+                },
+                NONPAYE: {
+                    totalGdes: 0,
+                    totalUs: 0
+                },
+                CREDIT: {
+                    totalGdes: 0,
+                    totalUs: 0
+                }
+            };
 
             // Générer le contenu HTML pour les totaux par catégorie, par article et par devise
             let html = '<h3>Rapport Du Jour</h3>';
@@ -1278,17 +1297,6 @@
                             totalGdes += totalGdesData.totalRevenue;
                             totalUs += totalUsData.totalRevenue;
                             itemsProcessed.add(item);
-
-                            // Calcul des totaux par méthode de paiement
-                            const paymentMethod = totalGdesData.paymentmeth;
-                            if (!paymentMethodTotals[paymentMethod]) {
-                                paymentMethodTotals[paymentMethod] = {
-                                    totalGdes: 0,
-                                    totalUs: 0
-                                };
-                            }
-                            paymentMethodTotals[paymentMethod].totalGdes += totalGdesData.totalRevenue;
-                            paymentMethodTotals[paymentMethod].totalUs += totalUsData.totalRevenue;
                         }
                     }
 
@@ -1305,17 +1313,6 @@
                             html += '</tr>';
 
                             totalUs += totalUsData.totalRevenue;
-
-                            // Calcul des totaux par méthode de paiement
-                            const paymentMethod = totalUsData.paymentmeth;
-                            if (!paymentMethodTotals[paymentMethod]) {
-                                paymentMethodTotals[paymentMethod] = {
-                                    totalGdes: 0,
-                                    totalUs: 0
-                                };
-                            }
-                            paymentMethodTotals[paymentMethod].totalGdes += 0; // Pas de revenu en Gdes
-                            paymentMethodTotals[paymentMethod].totalUs += totalUsData.totalRevenue;
                         }
                     }
 
@@ -1327,6 +1324,36 @@
                 }
             }
 
+            // Calculer les totaux par méthode de paiement et par statut de paiement à partir des données de vente (salesData)
+            salesData.forEach(sale => {
+                const paymentMethod = sale.paymentmeth;
+                const paymentStatus = sale.paymentStatut;
+                const totalGdes = sale.totalGdes || 0;
+                const totalUs = sale.totalUs || 0;
+
+                if (paymentMethod) {
+                    if (!paymentMethodTotals[paymentMethod]) {
+                        paymentMethodTotals[paymentMethod] = {
+                            totalGdes: 0,
+                            totalUs: 0
+                        };
+                    }
+                    paymentMethodTotals[paymentMethod].totalGdes += totalGdes;
+                    paymentMethodTotals[paymentMethod].totalUs += totalUs;
+                }
+
+                if (paymentStatus) {
+                    if (!paymentStatusTotals[paymentStatus]) {
+                        paymentStatusTotals[paymentStatus] = {
+                            totalGdes: 0,
+                            totalUs: 0
+                        };
+                    }
+                    paymentStatusTotals[paymentStatus].totalGdes += totalGdes;
+                    paymentStatusTotals[paymentStatus].totalUs += totalUs;
+                }
+            });
+
             // Afficher les totaux par méthode de paiement
             html += '<h3>Totaux par Méthode de Paiement</h3>';
             for (const paymentMethod in paymentMethodTotals) {
@@ -1335,10 +1362,17 @@
                 }
             }
 
+            // Afficher les totaux par statut de paiement
+            html += '<h3>Totaux par Statut de Paiement</h3>';
+            for (const paymentStatus in paymentStatusTotals) {
+                if (paymentStatusTotals.hasOwnProperty(paymentStatus)) {
+                    html += `<p>${paymentStatus}: Total Gdes - ${paymentStatusTotals[paymentStatus].totalGdes}, Total Us - ${paymentStatusTotals[paymentStatus].totalUs}</p>`;
+                }
+            }
+
             // Insérer le contenu dans l'élément "resultContainer"
             resultContainer.innerHTML = html;
         }
-
 
         // Attendre que Firebase Auth soit prêt avant d'ajouter l'écouteur d'événement
         firebase.auth().onAuthStateChanged(function(user) {
@@ -1353,6 +1387,7 @@
             }
         });
     </script>
+
 
 </body>
 
