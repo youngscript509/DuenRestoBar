@@ -882,17 +882,23 @@
 
             console.log("Tous les produits de la vente ont été récupérés.");
 
-            db.collection("globalSales").where("customerName", "==", customerName).where("date", "==", date).get()
-                .then(function(querySnapshot) {
-                    if (querySnapshot.empty) {
-                        console.log("Aucune facture existante trouvée. Création d'une nouvelle facture...");
+            checkStockAvailability(products).then(stockAvailable => {
+                if (!stockAvailable) {
+                    alert("Opération annulée: une ou plusieurs quantités demandées dépassent le stock disponible.");
+                    return;
+                }
 
-                        products.forEach(product => {
-                            console.log(`Mise à jour du stock pour le produit : ${product.item} avec quantité à soustraire : ${product.quantity}`);
-                            updateStock(product.item, 0, product.quantity); // Ancienne quantité = 0 pour une nouvelle vente
-                        });
+                db.collection("globalSales").where("customerName", "==", customerName).where("date", "==", date).get()
+                    .then(function(querySnapshot) {
+                        if (querySnapshot.empty) {
+                            console.log("Aucune facture existante trouvée. Création d'une nouvelle facture...");
 
-                        db.collection("globalSales").add({
+                            products.forEach(product => {
+                                console.log(`Mise à jour du stock pour le produit : ${product.item} avec quantité à soustraire : ${product.quantity}`);
+                                updateStock(product.item, 0, product.quantity); // Ancienne quantité = 0 pour une nouvelle vente
+                            });
+
+                            db.collection("globalSales").add({
                                 customerName,
                                 sellerName,
                                 paymentmeth,
@@ -908,32 +914,30 @@
                                 products,
                                 totalGdes,
                                 totalUs
-                            })
-                            .then(function(docRef) {
+                            }).then(function(docRef) {
                                 console.log("Nouvelle facture créée avec ID: ", docRef.id);
                                 window.location.href = 'orderinvoice1.html';
-                            })
-                            .catch(function(error) {
+                            }).catch(function(error) {
                                 console.error("Erreur lors de l'ajout du document : ", error);
                             });
-                    } else {
-                        console.log("Facture existante trouvée. Mise à jour de la facture...");
+                        } else {
+                            console.log("Facture existante trouvée. Mise à jour de la facture...");
 
-                        querySnapshot.forEach(function(doc) {
-                            const oldProducts = doc.data().products;
+                            querySnapshot.forEach(function(doc) {
+                                const oldProducts = doc.data().products;
 
-                            console.log("Récupération des anciennes quantités pour restitution au stock...");
+                                console.log("Récupération des anciennes quantités pour restitution au stock...");
 
-                            oldProducts.forEach(oldProduct => {
-                                const newProduct = products.find(p => p.item === oldProduct.item);
+                                oldProducts.forEach(oldProduct => {
+                                    const newProduct = products.find(p => p.item === oldProduct.item);
 
-                                if (newProduct) {
-                                    console.log(`Restitution du stock pour le produit : ${oldProduct.item} avec quantité : ${oldProduct.quantity}`);
-                                    updateStock(oldProduct.item, oldProduct.quantity, newProduct.quantity);
-                                }
-                            });
+                                    if (newProduct) {
+                                        console.log(`Restitution du stock pour le produit : ${oldProduct.item} avec quantité : ${oldProduct.quantity}`);
+                                        updateStock(oldProduct.item, oldProduct.quantity, newProduct.quantity);
+                                    }
+                                });
 
-                            db.collection("globalSales").doc(doc.id).update({
+                                db.collection("globalSales").doc(doc.id).update({
                                     customerName,
                                     sellerName,
                                     paymentmeth,
@@ -949,23 +953,82 @@
                                     products,
                                     totalGdes,
                                     totalUs
-                                })
-                                .then(function() {
+                                }).then(function() {
                                     console.log("Facture mise à jour avec succès.");
                                     window.location.href = 'orderinvoice1.html';
-                                })
-                                .catch(function(error) {
+                                }).catch(function(error) {
                                     console.error("Erreur lors de la mise à jour du document : ", error);
                                 });
-                        });
-                    }
-                })
-                .catch(function(error) {
-                    console.error("Erreur lors de la récupération des documents : ", error);
-                });
+                            });
+                        }
+                    }).catch(function(error) {
+                        console.error("Erreur lors de la récupération des documents : ", error);
+                    });
+            });
         });
 
+        function checkStockAvailability(products) {
+            return new Promise((resolve, reject) => {
+                let stockAvailable = true;
+
+                const checkPromises = products.map(product => {
+                    return db.collection("DrinkStock").where("name", "==", product.item).get()
+                        .then(function(querySnapshot) {
+                            if (!querySnapshot.empty) {
+                                querySnapshot.forEach(function(doc) {
+                                    const currentQuantity = doc.data().quantity;
+                                    if (product.quantity > currentQuantity) {
+                                        console.error(`Quantité demandée pour ${product.item} dépasse le stock disponible.`);
+                                        stockAvailable = false;
+                                    }
+                                });
+                            } else {
+                                console.error(`Aucun item trouvé dans le stock avec le nom : ${product.item}`);
+                                stockAvailable = false;
+                            }
+                        }).catch(function(error) {
+                            console.error("Erreur lors de la vérification du stock : ", error);
+                            stockAvailable = false;
+                        });
+                });
+
+                Promise.all(checkPromises).then(() => resolve(stockAvailable));
+            });
+        }
+
         function updateStock(item, oldQuantity, newQuantity) {
+            console.log(`Recherche de l'item ${item} dans DrinkStock...`);
+
+            db.collection("DrinkStock").where("name", "==", item).get()
+                .then(function(querySnapshot) {
+                    if (!querySnapshot.empty) {
+                        querySnapshot.forEach(function(doc) {
+                            const currentQuantity = doc.data().quantity;
+
+                            // Calculer la nouvelle quantité disponible dans le stock
+                            const quantity1 = currentQuantity + oldQuantity;
+                            const finalQuantity = quantity1 - newQuantity;
+
+                            console.log(`Mise à jour du stock pour ${item}: quantité actuelle ${currentQuantity}, 
+                        quantité après ajout de l'ancienne quantité ${quantity1}, 
+                        quantité après soustraction de la nouvelle quantité ${finalQuantity}`);
+
+                            db.collection("DrinkStock").doc(doc.id).update({
+                                quantity: finalQuantity
+                            }).then(function() {
+                                console.log(`Stock mis à jour pour l'item ${item}: nouvelle quantité est ${finalQuantity}`);
+                            }).catch(function(error) {
+                                console.error("Erreur lors de la mise à jour du stock : ", error);
+                            });
+                        });
+                    } else {
+                        console.error(`Aucun item trouvé dans le stock avec le nom : ${item}`);
+                    }
+                }).catch(function(error) {
+                    console.error("Erreur lors de la récupération du document de stock : ", error);
+                });
+
+
             console.log(`Recherche de l'item ${item} dans DrinkStock...`);
 
             db.collection("DrinkStock").where("name", "==", item).get()
