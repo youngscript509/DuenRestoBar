@@ -370,7 +370,7 @@
                                 </div>
                                 <div>
                                     <label for="quantity">Quantité:</label>
-                                    <input type="number" id="quantity" name="quantity" min="1" required>
+                                    <input type="number" id="quantity" name="quantity" value="1" min="1" required>
                                     <input type="text" id="currencyChoice" hidden>
                                 </div>
                                 <br>
@@ -837,6 +837,8 @@
         document.getElementById('myForm').addEventListener('submit', function(event) {
             event.preventDefault();
 
+            console.log("Début du processus d'enregistrement de la vente...");
+
             const customerName = document.getElementById('fullname').value;
             const sellerName = document.getElementById('sellerName').value;
             const paymentmeth = document.getElementById('paymentmeth').value;
@@ -852,6 +854,8 @@
             const totalGdes = parseFloat(document.querySelector('.totalGdes').value);
             const totalUs = parseFloat(document.querySelector('.totalUs').value);
 
+            console.log("Les informations du client ont été récupérées.");
+
             const invoiceTable = document.getElementById('productConsumed');
             const rows = invoiceTable.querySelectorAll('tbody tr');
             const products = [];
@@ -865,6 +869,8 @@
                 const category = columns[4].textContent;
                 const quantity = parseFloat(quantityInput.value);
 
+                console.log(`Produit trouvé : ${item} avec quantité ${quantity}`);
+
                 products.push({
                     item,
                     quantity,
@@ -874,12 +880,16 @@
                 });
             });
 
+            console.log("Tous les produits de la vente ont été récupérés.");
+
             db.collection("globalSales").where("customerName", "==", customerName).where("date", "==", date).get()
                 .then(function(querySnapshot) {
                     if (querySnapshot.empty) {
-                        // La facture n'existe pas, l'ajouter
+                        console.log("Aucune facture existante trouvée. Création d'une nouvelle facture...");
+
                         products.forEach(product => {
-                            updateStock(product.item, -product.quantity);
+                            console.log(`Mise à jour du stock pour le produit : ${product.item} avec quantité à soustraire : ${product.quantity}`);
+                            updateStock(product.item, 0, product.quantity); // Ancienne quantité = 0 pour une nouvelle vente
                         });
 
                         db.collection("globalSales").add({
@@ -900,25 +910,27 @@
                                 totalUs
                             })
                             .then(function(docRef) {
-                                console.log("Document added with ID: ", docRef.id);
+                                console.log("Nouvelle facture créée avec ID: ", docRef.id);
                                 window.location.href = 'orderinvoice1.html';
                             })
                             .catch(function(error) {
-                                console.error("Error adding document: ", error);
+                                console.error("Erreur lors de l'ajout du document : ", error);
                             });
                     } else {
-                        // La facture existe, la mettre à jour
+                        console.log("Facture existante trouvée. Mise à jour de la facture...");
+
                         querySnapshot.forEach(function(doc) {
                             const oldProducts = doc.data().products;
 
-                            // Restituer les anciennes quantités au stock
-                            oldProducts.forEach(product => {
-                                updateStock(product.item, product.quantity);
-                            });
+                            console.log("Récupération des anciennes quantités pour restitution au stock...");
 
-                            // Mettre à jour le stock avec les nouvelles quantités
-                            products.forEach(product => {
-                                updateStock(product.item, -product.quantity);
+                            oldProducts.forEach(oldProduct => {
+                                const newProduct = products.find(p => p.item === oldProduct.item);
+
+                                if (newProduct) {
+                                    console.log(`Restitution du stock pour le produit : ${oldProduct.item} avec quantité : ${oldProduct.quantity}`);
+                                    updateStock(oldProduct.item, oldProduct.quantity, newProduct.quantity);
+                                }
                             });
 
                             db.collection("globalSales").doc(doc.id).update({
@@ -939,41 +951,52 @@
                                     totalUs
                                 })
                                 .then(function() {
-                                    console.log("Document updated");
+                                    console.log("Facture mise à jour avec succès.");
                                     window.location.href = 'orderinvoice1.html';
                                 })
                                 .catch(function(error) {
-                                    console.error("Error updating document: ", error);
+                                    console.error("Erreur lors de la mise à jour du document : ", error);
                                 });
                         });
                     }
                 })
                 .catch(function(error) {
-                    console.error("Error getting documents: ", error);
+                    console.error("Erreur lors de la récupération des documents : ", error);
                 });
         });
 
-        function updateStock(item, quantityChange) {
-            const productRef = db.collection("DrinkStock").doc(item);
+        function updateStock(item, oldQuantity, newQuantity) {
+            console.log(`Recherche de l'item ${item} dans DrinkStock...`);
 
-            productRef.get().then(function(doc) {
-                if (doc.exists) {
-                    const currentQuantity = doc.data().quantity;
-                    const newQuantity = currentQuantity + quantityChange;
+            db.collection("DrinkStock").where("name", "==", item).get()
+                .then(function(querySnapshot) {
+                    if (!querySnapshot.empty) {
+                        querySnapshot.forEach(function(doc) {
+                            const currentQuantity = doc.data().quantity;
 
-                    productRef.update({
-                        quantity: newQuantity
-                    }).then(function() {
-                        console.log(`Stock updated for item ${item}: new quantity is ${newQuantity}`);
-                    }).catch(function(error) {
-                        console.error("Error updating stock: ", error);
-                    });
-                } else {
-                    console.error("No such item in stock!");
-                }
-            }).catch(function(error) {
-                console.error("Error getting stock document: ", error);
-            });
+                            // Calculer la nouvelle quantité disponible dans le stock
+                            const quantity1 = currentQuantity + oldQuantity;
+                            const finalQuantity = quantity1 - newQuantity;
+
+                            console.log(`Mise à jour du stock pour ${item}: quantité actuelle ${currentQuantity}, 
+                        quantité après ajout de l'ancienne quantité ${quantity1}, 
+                        quantité après soustraction de la nouvelle quantité ${finalQuantity}`);
+
+                            db.collection("DrinkStock").doc(doc.id).update({
+                                quantity: finalQuantity
+                            }).then(function() {
+                                console.log(`Stock mis à jour pour l'item ${item}: nouvelle quantité est ${finalQuantity}`);
+                            }).catch(function(error) {
+                                console.error("Erreur lors de la mise à jour du stock : ", error);
+                            });
+                        });
+                    } else {
+                        console.error(`Aucun item trouvé dans le stock avec le nom : ${item}`);
+                    }
+                })
+                .catch(function(error) {
+                    console.error("Erreur lors de la récupération du document de stock : ", error);
+                });
         }
 
         // Fonction pour récupérer l'utilisateur connecté
@@ -1198,7 +1221,7 @@
             // Récupérer l'utilisateur connecté
             getCurrentUser().then(function(currentUserName) {
                 // Définir les catégories disponibles
-                const categories = ['drink', 'food', 'room', 'spec18', 'pool'];
+                const categories = ['drink', 'food', 'room', 'spec18', 'pool', 'smoke'];
 
                 // Initialiser l'objet pour stocker les totaux par article, par catégorie et par devise
                 const totalsByItemCategoryAndCurrency = [];
@@ -1296,8 +1319,9 @@
                     html += '<thead>';
                     html += '<tr>';
                     html += '<th>Item</th>';
-                    html += '<th>Quantity</th>';
+                    html += '<th>Quantity Gdes</th>';
                     html += '<th>Revenu Gdes</th>';
+                    html += '<th>Quantity Us</th>';
                     html += '<th>Revenu Us</th>';
                     html += '</tr>';
                     html += '</thead>';
@@ -1321,6 +1345,7 @@
                             html += `<td>${item}</td>`;
                             html += `<td>${totalGdesData.totalQuantity}</td>`;
                             html += `<td>${totalGdesData.totalRevenue}</td>`;
+                            html += `<td>${totalUsData.totalQuantity}</td>`;
                             html += `<td>${totalUsData.totalRevenue}</td>`;
                             html += '</tr>';
 
