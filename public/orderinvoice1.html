@@ -1491,19 +1491,6 @@
             // Insérer le contenu dans l'élément "resultContainer"
             resultContainer.innerHTML = html;
         }
-
-        // Attendre que Firebase Auth soit prêt avant d'ajouter l'écouteur d'événement
-        firebase.auth().onAuthStateChanged(function(user) {
-            if (user) {
-                // Appeler la fonction pour filtrer les ventes par date lorsqu'une date est sélectionnée
-                document.getElementById("date").addEventListener("change", filterSalesByDate);
-
-                // Appeler la fonction pour filtrer les ventes par date lors du chargement de la page
-                filterSalesByDate();
-            } else {
-                alert('Veuillez vous connecter pour afficher les ventes.');
-            }
-        });
     </script>
 
 
