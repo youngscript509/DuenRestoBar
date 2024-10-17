@@ -392,6 +392,9 @@
 
 
                         </form><br><br>
+                        <input type="date" id="datedisplay" class="card" style="width: 100%;height: 30px;">
+                        <br> <br>
+
                         <ul style="display: block; background-color: aqua;" id="invoices"></ul>
 
                     </div>
@@ -469,7 +472,9 @@
 
     <script>
         // Set the value of the input field to the current date
+
         document.getElementById('daterepport').value = formattedDate;
+        document.getElementById('datedisplay').value = formattedDate;
     </script>
 
     <script>
@@ -1273,7 +1278,7 @@
 
         // Fonction pour récupérer les ventes en fonction de la date sélectionnée et afficher les totaux par jour avec la liste des produits et le grand total pour chaque collection
         function filterSalesByDate() {
-            const selectedDate = document.getElementById('date').value; // Récupérer la date sélectionnée dans l'input
+            const selectedDate = document.getElementById('datedisplay').value; // Récupérer la date sélectionnée dans l'input
 
             // Si aucune date n'est sélectionnée, afficher un message d'erreur ou une notification à l'utilisateur
             if (!selectedDate) {
