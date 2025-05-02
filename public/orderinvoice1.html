@@ -194,7 +194,7 @@
                                         <i class="info">☎ +509 35 10 1329 <br> / 36 43 7237
                                     </i><br>
                                         <i class="info">📧 duenhotel@gmail.com</i><br>
-
+                                        <input type="text" id="factureId" required readonly><br>
 
                                         <input type="date" id="date" required readonly><br>
                                         <input type="time" id="time" required readonly><br>
@@ -823,6 +823,7 @@
             }
         });
     </script>
+
     <script src="addrow.js"></script>
     <!-- Ajoutez jQuery à votre page si ce n'est pas déjà fait -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -838,234 +839,155 @@
         });
     </script>
 
-    <script>
-        document.getElementById('myForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-
-            console.log("Début du processus d'enregistrement de la vente...");
-
-            const customerName = document.getElementById('fullname').value;
-            const sellerName = document.getElementById('sellerName').value;
-            const paymentmeth = document.getElementById('paymentmeth').value;
-            const paymentStatut = document.getElementById('paymentStatut').value;
-            const date = document.querySelector('#date').value;
-            const payOnGdes = parseFloat(document.querySelector('.pay-onGdes').value);
-            const payOnUs = parseFloat(document.querySelector('.pay-onUs').value);
-            const changeGdes = parseFloat(document.querySelector('.changeGdes').value);
-            const changeUs = parseFloat(document.querySelector('.changeUs').value);
-            const balanceGdes = parseFloat(document.querySelector('.balanceGdes').value);
-            const balanceUs = parseFloat(document.querySelector('.balanceUs').value);
-            const time = document.querySelector('#time').value;
-            const totalGdes = parseFloat(document.querySelector('.totalGdes').value);
-            const totalUs = parseFloat(document.querySelector('.totalUs').value);
-
-            console.log("Les informations du client ont été récupérées.");
-
-            const invoiceTable = document.getElementById('productConsumed');
-            const rows = invoiceTable.querySelectorAll('tbody tr');
-            const products = [];
-
-            rows.forEach(row => {
-                const columns = row.querySelectorAll('td');
-                const item = columns[0].textContent;
-                const quantityInput = columns[1].querySelector('input');
-                const price = columns[2].textContent;
-                const currency = columns[3].textContent;
-                const category = columns[4].textContent;
-                const quantity = parseFloat(quantityInput.value);
-
-                console.log(`Produit trouvé : ${item} avec quantité ${quantity}`);
-
-                products.push({
-                    item,
-                    quantity,
-                    price,
-                    currency,
-                    category
-                });
-            });
-
-            console.log("Tous les produits de la vente ont été récupérés.");
-
-            checkStockAvailability(products).then(stockAvailable => {
-                if (!stockAvailable) {
-                    alert("Opération annulée: une ou plusieurs quantités demandées dépassent le stock disponible.");
-                    return;
-                }
-
-                db.collection("globalSales").where("customerName", "==", customerName).where("date", "==", date).get()
-                    .then(function(querySnapshot) {
-                        if (querySnapshot.empty) {
-                            console.log("Aucune facture existante trouvée. Création d'une nouvelle facture...");
-
-                            products.forEach(product => {
-                                console.log(`Mise à jour du stock pour le produit : ${product.item} avec quantité à soustraire : ${product.quantity}`);
-                                updateStock(product.item, 0, product.quantity); // Ancienne quantité = 0 pour une nouvelle vente
-                            });
-
-                            db.collection("globalSales").add({
-                                customerName,
-                                sellerName,
-                                paymentmeth,
-                                paymentStatut,
-                                date,
-                                time,
-                                payOnGdes,
-                                payOnUs,
-                                changeGdes,
-                                changeUs,
-                                balanceGdes,
-                                balanceUs,
-                                products,
-                                totalGdes,
-                                totalUs
-                            }).then(function(docRef) {
-                                console.log("Nouvelle facture créée avec ID: ", docRef.id);
-                                window.location.href = 'orderinvoice1.html';
-                            }).catch(function(error) {
-                                console.error("Erreur lors de l'ajout du document : ", error);
-                            });
-                        } else {
-                            console.log("Facture existante trouvée. Mise à jour de la facture...");
-
-                            querySnapshot.forEach(function(doc) {
-                                const oldProducts = doc.data().products;
-
-                                console.log("Récupération des anciennes quantités pour restitution au stock...");
-
-                                oldProducts.forEach(oldProduct => {
-                                    const newProduct = products.find(p => p.item === oldProduct.item);
-
-                                    if (newProduct) {
-                                        console.log(`Restitution du stock pour le produit : ${oldProduct.item} avec quantité : ${oldProduct.quantity}`);
-                                        updateStock(oldProduct.item, oldProduct.quantity, newProduct.quantity);
-                                    }
-                                });
-
-                                db.collection("globalSales").doc(doc.id).update({
-                                    customerName,
-                                    sellerName,
-                                    paymentmeth,
-                                    paymentStatut,
-                                    date,
-                                    time,
-                                    payOnGdes,
-                                    payOnUs,
-                                    changeGdes,
-                                    changeUs,
-                                    balanceGdes,
-                                    balanceUs,
-                                    products,
-                                    totalGdes,
-                                    totalUs
-                                }).then(function() {
-                                    console.log("Facture mise à jour avec succès.");
-                                    window.location.href = 'orderinvoice1.html';
-                                }).catch(function(error) {
-                                    console.error("Erreur lors de la mise à jour du document : ", error);
-                                });
-                            });
-                        }
-                    }).catch(function(error) {
-                        console.error("Erreur lors de la récupération des documents : ", error);
-                    });
-            });
+<script>
+    document.getElementById('myForm').addEventListener('submit', async function (event) {
+        event.preventDefault();
+    
+        const factureId = document.getElementById('factureId').value.trim();
+        const customerName = document.getElementById('fullname').value;
+        const sellerName = document.getElementById('sellerName').value;
+        const paymentmeth = document.getElementById('paymentmeth').value;
+        const paymentStatut = document.getElementById('paymentStatut').value;
+        const date = document.querySelector('#date').value;
+        const time = document.querySelector('#time').value;
+        const payOnGdes = parseFloat(document.querySelector('.pay-onGdes').value);
+        const payOnUs = parseFloat(document.querySelector('.pay-onUs').value);
+        const changeGdes = parseFloat(document.querySelector('.changeGdes').value);
+        const changeUs = parseFloat(document.querySelector('.changeUs').value);
+        const balanceGdes = parseFloat(document.querySelector('.balanceGdes').value);
+        const balanceUs = parseFloat(document.querySelector('.balanceUs').value);
+        const totalGdes = parseFloat(document.querySelector('.totalGdes').value);
+        const totalUs = parseFloat(document.querySelector('.totalUs').value);
+    
+        const invoiceTable = document.getElementById('productConsumed');
+        const rows = invoiceTable.querySelectorAll('tbody tr');
+        const products = [];
+    
+        rows.forEach(row => {
+            const columns = row.querySelectorAll('td');
+            const item = columns[0].textContent.trim();
+            const quantity = parseFloat(columns[1].querySelector('input').value);
+            const price = columns[2].textContent.trim();
+            const currency = columns[3].textContent.trim();
+            const category = columns[4].textContent.trim();
+    
+            products.push({ item, quantity, price, currency, category });
         });
-
-        function checkStockAvailability(products) {
-            return new Promise((resolve, reject) => {
-                let stockAvailable = true;
-
-                const checkPromises = products.map(product => {
-                    return db.collection("DrinkStock").where("name", "==", product.item).get()
-                        .then(function(querySnapshot) {
-                            if (!querySnapshot.empty) {
-                                querySnapshot.forEach(function(doc) {
-                                    const currentQuantity = doc.data().quantity;
-                                    if (product.quantity > currentQuantity) {
-                                        console.error(`Quantité demandée pour ${product.item} dépasse le stock disponible.`);
-                                        stockAvailable = false;
-                                    }
-                                });
-                            } else {
-                                console.error(`Aucun item trouvé dans le stock avec le nom : ${product.item}`);
-                                stockAvailable = false;
-                            }
-                        }).catch(function(error) {
-                            console.error("Erreur lors de la vérification du stock : ", error);
-                            stockAvailable = false;
-                        });
+    
+        const insufficientProducts = await checkInsufficientStock(products);
+        if (insufficientProducts.length > 0) {
+            alert("Stock insuffisant pour :\n" + insufficientProducts.map(p => `${p.item} - ${p.message}`).join('\n'));
+            return;
+        }
+    
+        try {
+            const docRef = db.collection("globalSales").doc(factureId);
+            const doc = await docRef.get();
+    
+            if (doc.exists) {
+                const oldProducts = doc.data().products;
+    
+                // Rétablir l'ancien stock
+                oldProducts.forEach(oldProduct => {
+                    const newProduct = products.find(p => p.item === oldProduct.item);
+                    const newQty = newProduct ? newProduct.quantity : 0;
+                    updateStock(oldProduct.item, oldProduct.quantity, newQty);
                 });
-
-                Promise.all(checkPromises).then(() => resolve(stockAvailable));
+    
+                await docRef.update({
+                    customerName,
+                    sellerName,
+                    paymentmeth,
+                    paymentStatut,
+                    date,
+                    time,
+                    payOnGdes,
+                    payOnUs,
+                    changeGdes,
+                    changeUs,
+                    balanceGdes,
+                    balanceUs,
+                    products,
+                    totalGdes,
+                    totalUs
+                });
+    
+                console.log("Facture mise à jour.");
+            } else {
+                // Nouvelle facture
+                products.forEach(p => updateStock(p.item, 0, p.quantity));
+    
+                await docRef.set({
+                    factureId,
+                    customerName,
+                    sellerName,
+                    paymentmeth,
+                    paymentStatut,
+                    date,
+                    time,
+                    payOnGdes,
+                    payOnUs,
+                    changeGdes,
+                    changeUs,
+                    balanceGdes,
+                    balanceUs,
+                    products,
+                    totalGdes,
+                    totalUs
+                });
+    
+                console.log("Nouvelle facture créée.");
+            }
+    
+            window.location.href = 'orderinvoice1.html';
+    
+        } catch (error) {
+            console.error("Erreur lors du traitement de la facture :", error);
+        }
+    });
+    
+    // Fonction de vérification du stock
+    async function checkInsufficientStock(products) {
+        const insufficient = [];
+    
+        for (let product of products) {
+            const snapshot = await db.collection("DrinkStock").where("name", "==", product.item).get();
+            if (snapshot.empty) {
+                insufficient.push({ item: product.item, message: "Produit inconnu dans le stock" });
+                continue;
+            }
+    
+            snapshot.forEach(doc => {
+                const currentQty = doc.data().quantity;
+                if (product.quantity > currentQty) {
+                    insufficient.push({
+                        item: product.item,
+                        message: `Stock insuffisant (dispo : ${currentQty}, demandé : ${product.quantity})`
+                    });
+                }
             });
         }
+    
+        return insufficient;
+    }
+    
+    // Fonction pour mettre à jour le stock
+    function updateStock(item, oldQty, newQty) {
+        db.collection("DrinkStock").where("name", "==", item).get().then(snapshot => {
+            snapshot.forEach(doc => {
+                const currentQty = doc.data().quantity;
+                const finalQty = currentQty + oldQty - newQty;
+                db.collection("DrinkStock").doc(doc.id).update({ quantity: finalQty });
+            });
+        }).catch(error => {
+            console.error(`Erreur de mise à jour du stock pour ${item}:`, error);
+        });
+    }
+    </script>
+    
 
-        function updateStock(item, oldQuantity, newQuantity) {
-            console.log(`Recherche de l'item ${item} dans DrinkStock...`);
-
-            db.collection("DrinkStock").where("name", "==", item).get()
-                .then(function(querySnapshot) {
-                    if (!querySnapshot.empty) {
-                        querySnapshot.forEach(function(doc) {
-                            const currentQuantity = doc.data().quantity;
-
-                            // Calculer la nouvelle quantité disponible dans le stock
-                            const quantity1 = currentQuantity + oldQuantity;
-                            const finalQuantity = quantity1 - newQuantity;
-
-                            console.log(`Mise à jour du stock pour ${item}: quantité actuelle ${currentQuantity}, 
-                        quantité après ajout de l'ancienne quantité ${quantity1}, 
-                        quantité après soustraction de la nouvelle quantité ${finalQuantity}`);
-
-                            db.collection("DrinkStock").doc(doc.id).update({
-                                quantity: finalQuantity
-                            }).then(function() {
-                                console.log(`Stock mis à jour pour l'item ${item}: nouvelle quantité est ${finalQuantity}`);
-                            }).catch(function(error) {
-                                console.error("Erreur lors de la mise à jour du stock : ", error);
-                            });
-                        });
-                    } else {
-                        console.error(`Aucun item trouvé dans le stock avec le nom : ${item}`);
-                    }
-                }).catch(function(error) {
-                    console.error("Erreur lors de la récupération du document de stock : ", error);
-                });
-
-
-            console.log(`Recherche de l'item ${item} dans DrinkStock...`);
-
-            db.collection("DrinkStock").where("name", "==", item).get()
-                .then(function(querySnapshot) {
-                    if (!querySnapshot.empty) {
-                        querySnapshot.forEach(function(doc) {
-                            const currentQuantity = doc.data().quantity;
-
-                            // Calculer la nouvelle quantité disponible dans le stock
-                            const quantity1 = currentQuantity + oldQuantity;
-                            const finalQuantity = quantity1 - newQuantity;
-
-                            console.log(`Mise à jour du stock pour ${item}: quantité actuelle ${currentQuantity}, 
-                        quantité après ajout de l'ancienne quantité ${quantity1}, 
-                        quantité après soustraction de la nouvelle quantité ${finalQuantity}`);
-
-                            db.collection("DrinkStock").doc(doc.id).update({
-                                quantity: finalQuantity
-                            }).then(function() {
-                                console.log(`Stock mis à jour pour l'item ${item}: nouvelle quantité est ${finalQuantity}`);
-                            }).catch(function(error) {
-                                console.error("Erreur lors de la mise à jour du stock : ", error);
-                            });
-                        });
-                    } else {
-                        console.error(`Aucun item trouvé dans le stock avec le nom : ${item}`);
-                    }
-                })
-                .catch(function(error) {
-                    console.error("Erreur lors de la récupération du document de stock : ", error);
-                });
-        }
+    <script>
+     
         // Fonction pour récupérer l'utilisateur connecté
         function getCurrentUser() {
             const user = firebase.auth().currentUser;
@@ -1176,6 +1098,7 @@
                 db.collection("globalSales").doc(docId).get().then(function(doc) {
                     if (doc.exists) {
                         const data = doc.data();
+                        document.getElementById('factureId').value = data.factureId;
                         document.getElementById('fullname').value = data.customerName;
                         document.getElementById('date').value = data.date;
                         document.getElementById('time').value = data.time;
