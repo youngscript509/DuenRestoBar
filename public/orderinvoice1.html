@@ -380,8 +380,8 @@
                                 <button id="deleteRow" class="newcustomer" type="button"> Suprimer</button>
 
 
-
-                                <button id="print" class="newcustomer" onclick="generatePDF();" type="button"> print</button>
+                                <button onclick="printDiv('myForm')" type="button">Imprimer</button>
+                                <button id="print" class="newcustomer" onclick="generatePDF();" type="button"> Download</button>
 
                                 <button id="Confirm" class="newcustomer" type="button"> Confirm</button>
 
@@ -838,6 +838,19 @@
             });
         });
     </script>
+     <script>
+        function generateRandomId(prefix) {
+            const randomId = Math.floor(1000 + Math.random() * 9000); // Génère un nombre aléatoire à 4 chiffres
+            return prefix + randomId;
+        }
+
+        // Attendre que le DOM soit entièrement chargé
+        document.addEventListener('DOMContentLoaded', function() {
+            // Assigner les IDs lors du chargement de la page
+            document.getElementById('factureId').value = generateRandomId('DH');
+
+        });
+    </script>
 
 <script>
     document.getElementById('myForm').addEventListener('submit', async function (event) {
@@ -984,7 +997,44 @@
         });
     }
     </script>
-    
+    <script>
+        function printDiv(divId) {
+            var divElement = document.getElementById(divId);
+            var clonedDiv = divElement.cloneNode(true);
+        
+            // Copier les valeurs des inputs et textareas dans leurs attributs value / contenu
+            const inputs = clonedDiv.querySelectorAll("input");
+            inputs.forEach(input => {
+                input.setAttribute("value", input.value);
+            });
+        
+            const textareas = clonedDiv.querySelectorAll("textarea");
+            textareas.forEach(textarea => {
+                textarea.textContent = textarea.value;
+            });
+        
+            // Créer une nouvelle fenêtre pour l'impression
+            var printWindow = window.open('', '_blank', 'width=800,height=600');
+            printWindow.document.write('<html><head><title>Impression</title>');
+            
+            // Vous pouvez y inclure des styles CSS ici si nécessaire
+            printWindow.document.write('<style>body{ font-family: sans-serif; margin: 20px; }</style>');
+        
+            printWindow.document.write('</head><body>');
+            printWindow.document.write(clonedDiv.innerHTML);
+            printWindow.document.write('</body></html>');
+            
+            printWindow.document.close();
+        
+            // Attendre le rendu du contenu avant d'imprimer
+            printWindow.onload = function() {
+                printWindow.focus();
+                printWindow.print();
+                printWindow.close(); // Fermer automatiquement après impression
+            };
+        }
+        </script>
+        
 
     <script>
      
