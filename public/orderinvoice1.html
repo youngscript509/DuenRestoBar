@@ -144,6 +144,10 @@
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
+                 <div id="custom-search" class="top-search-bar" style="display: flex;">
+                                                    <input class="form-control" type="text" id="search" placeholder="Search.." style="margin-right: 10px;"> <button id="rechercheFacture">Rechercher</button>
+                    
+                                                </div>
 
                 <div class="collapse navbar-collapse " id="navbarSupportedContent">
                     <ul class="navbar-nav ml-auto navbar-right-top">
@@ -187,16 +191,14 @@
 
                                         <h2>DUEN-HOTEL</h2>
 
-                                        <i class="info">📍7, Angle des rues A. <br>
-                                         Martial & Costa, Delmas 33
-                                    </i><br>
+                                       
 
-                                        <i class="info">☎ +509 35 10 1329 <br> / 36 43 7237
+                                        <i class="info">☎ +509 35 10 1329 / 36 43 7237
                                     </i><br>
-                                        <i class="info">📧 duenhotel@gmail.com</i><br>
+                                     
                                         <input type="text" id="factureId" required readonly><br>
 
-                                        <input type="date" id="date" required readonly><br>
+                                        <input type="date" id="date" required readonly>
                                         <input type="time" id="time" required readonly><br>
 
                                         <input id="fullname" name="choices" required placeholder="Nom du client">
@@ -392,6 +394,7 @@
 
 
                         </form><br><br>
+                             
                         <input type="date" id="datedisplay" class="card" style="width: 100%;height: 30px;">
                         <br> <br>
 
@@ -1444,6 +1447,60 @@
                 alert('Veuillez vous connecter pour afficher les ventes.');
             }
         });
+    </script>
+
+    <script>
+        
+        document.getElementById('rechercheFacture').addEventListener('click', () => {
+            const customerName = document.getElementById('search').value.trim();
+            if (!customerName) {
+                alert("Veuillez entrer un ID de facture");
+                return;
+            }
+
+            db.collection("sales").where("customerName", "==", customerName).get().then((querySnapshot) => {
+                if (querySnapshot.empty) {
+                    alert("Facture non trouvée");
+                } else {
+                    querySnapshot.forEach((doc) => {
+                        let sale = doc.data();
+                        document.getElementById('factureId').value = data.factureId;
+                        document.getElementById('fullname').value = data.customerName;
+                        document.getElementById('date').value = data.date;
+                        document.getElementById('time').value = data.time;
+                        document.getElementById('sellerName').value = data.sellerName;
+                        document.querySelector('.pay-onGdes').value = data.payOnGdes;
+                        document.querySelector('.pay-onUs').value = data.payOnUs;
+                        document.querySelector('.changeGdes').value = data.changeGdes;
+                        document.querySelector('.changeUs').value = data.changeUs;
+                        document.querySelector('.balanceGdes').value = data.balanceGdes;
+                        document.querySelector('.balanceUs').value = data.balanceUs;
+                        document.querySelector('.totalUs').value = data.totalUs;
+                        document.querySelector('.totalGdes').value = data.totalGdes;
+                        document.getElementById('paymentStatut').value = data.paymentStatut;
+
+
+                        const consumedTableBody = document.getElementById('consumedTableBody');
+                        consumedTableBody.innerHTML = '';
+                        sale.products.forEach(product => {
+                            const tableBody = document.getElementById('consumedTableBody');
+                            const row = tableBody.insertRow();
+                            row.insertCell().textContent = product.item;
+                            row.insertCell().innerHTML = `<input type="number" value="${product.quantity}" min="1">`;
+                            row.insertCell().textContent = product.price;
+
+                            row.insertCell().textContent = product.currency;
+                            row.insertCell().textContent = product.category;
+
+                        });
+                    });
+                }
+            }).catch((error) => {
+                console.error("Erreur lors de la recherche de la facture :", error);
+            });
+        });
+
+        
     </script>
 
 
