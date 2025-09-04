@@ -1,127 +1,157 @@
-<!DOCTYPE html>
-<html lang="fr">
+<!doctype html>
+<html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <title>Connexion - Vente</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      background: linear-gradient(to right, #4facfe, #00f2fe);
-      font-family: 'Segoe UI', sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Login</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="assets/vendor/bootstrap/css/bootstrap.min.css">
+    <link href="assets/vendor/fonts/circular-std/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/libs/css/style.css">
+    <link rel="stylesheet" rel="icon" href="logo.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="generator" content="DuenInvoice v1.0, https://dueninvoice.netlify.app">
+    <link rel="canonical" href="https://dueninvoice.netlify.app">
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image:src" content="https://dueninvoice.netlify.app/logo.png">
+    <meta property="og:image" content="https://dueninvoice.netlify.app/logo.png">
+    <meta name="twitter:title" content="Home">
 
-    .login-container {
-      background-color: #fff;
-      padding: 2rem 2.5rem;
-      border-radius: 16px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-      max-width: 360px;
-      width: 100%;
-    }
+    <link rel="shortcut icon" href="logo.png" type="image/x-icon">
+    <meta name="description" content="DuenInvoice">
+    <meta property="og:title" content="Duen">
+    <meta property="og:description" content="DuenInvoice">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://dueninvoice.netlify.app/logo.png">
+    <meta property="og:image" content="https://dueninvoice.netlify.app/logo.png">
+    <meta property="og:locale" content="fr_FR">
 
-    .login-container h2 {
-      text-align: center;
-      margin-bottom: 1.5rem;
-      color: #333;
-    }
+    <link rel="stylesheet" href="assets/vendor/fonts/fontawesome/css/fontawesome-all.css">
+    <script>
+        // Vérifier si l'application est installable
+        function isInstallable() {
+            return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        }
 
-    .form-group {
-      margin-bottom: 1rem;
-    }
+        // Afficher une invitation à l'installation
+        function showInstallPrompt() {
+            const installButton = document.getElementById('install-button');
 
-    .form-group label {
-      display: block;
-      margin-bottom: 0.4rem;
-      font-weight: 500;
-    }
+            installButton.addEventListener('click', () => {
+                deferredPrompt.prompt();
 
-    .form-group input {
-      width: 100%;
-      padding: 0.7rem;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      outline: none;
-      font-size: 1rem;
-    }
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the installation prompt');
+                    } else {
+                        console.log('User dismissed the installation prompt');
+                    }
+                });
+            });
 
-    .form-group input:focus {
-      border-color: #4facfe;
-    }
+            installButton.style.display = 'block';
+        }
 
-    .btn-login {
-      width: 100%;
-      background-color: #4facfe;
-      color: white;
-      padding: 0.8rem;
-      font-size: 1rem;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 1rem;
-      transition: background 0.3s;
-    }
+        // Événement beforeinstallprompt pour détecter l'opportunité d'installation
+        window.addEventListener('beforeinstallprompt', (event) => {
+            // Empêcher le navigateur de gérer l'événement par défaut
+            event.preventDefault();
+            // Stocker l'événement pour une utilisation ultérieure
+            deferredPrompt = event;
+            // Afficher l'invitation à l'installation
+            showInstallPrompt();
+        });
 
-    .btn-login:hover {
-      background-color: #00c6ff;
-    }
-
-    .error-message {
-      color: red;
-      text-align: center;
-      margin-top: 0.5rem;
-    }
-  </style>
+        // Initialisation de la variable deferredPrompt
+        let deferredPrompt;
+    </script>
+    <style>
+        html,
+        body {
+            height: 100%;
+        }
+        
+        body {
+            display: -ms-flexbox;
+            display: flex;
+            -ms-flex-align: center;
+            align-items: center;
+            padding-top: 40px;
+            padding-bottom: 40px;
+        }
+    </style>
 </head>
+
 <body>
+    <!-- ============================================================== -->
+    <!-- login page  -->
+    <!-- ============================================================== -->
+    <div class="splash-container">
+        <div class="card ">
+            <div class="card-header text-center"><img class="logo-img" src="assets/images/logo.png" alt="logo"></a><span class="splash-description">Please enter your user information.</span></div>
+            <div class="card-body">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <input class="form-control form-control-lg" id="email" type="email" placeholder="Email" autocomplete="off" required>
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control form-control-lg" id="password" type="password" placeholder="Password" required>
+                    </div>
 
-<div class="login-container">
-  <h2>Connexion</h2>
-  <div class="form-group">
-    <label for="email">Adresse e-mail</label>
-    <input type="email" id="email" placeholder="ex: utilisateur@email.com">
-  </div>
-  <div class="form-group">
-    <label for="password">Mot de passe</label>
-    <input type="password" id="password" placeholder="Mot de passe">
-  </div>
-  <button class="btn-login" onclick="login()">Se connecter</button>
-  <div class="error-message" id="error-message"></div>
-</div>
+                    <button type="submit" class="btn btn-primary btn-lg btn-block">Sign in</button>
+                </form>
+            </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
- <script src="firebase-config.js"></script>
+        </div>
+    </div>
 
-<script>
- 
-  const auth = firebase.auth();
+    <script src="https://konbitmarket.netlify.app/js/js/firebase-app.js"></script>
+    <script src="https://konbitmarket.netlify.app/js/js/auth.js"></script>
+    <script src="https://konbitmarket.netlify.app/js/js/firebase-firestore.js"></script>
+    <script src="firebase-config.js"></script>
 
-  function login() {
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
-    const errorDiv = document.getElementById("error-message");
+    <script>
+        // Référence à l'authentification Firebase
+        const auth = firebase.auth();
 
-    if (!email || !password) {
-      errorDiv.textContent = "Veuillez remplir tous les champs.";
-      return;
-    }
+        // Fonction pour gérer la soumission du formulaire de connexion
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Empêcher le formulaire de se soumettre normalement
 
-    auth.signInWithEmailAndPassword(email, password)
-      .then(() => {
-        window.location.href = "home.html";
-      })
-      .catch(error => {
-        console.error("Erreur:", error.message);
-        errorDiv.textContent = "Email ou mot de passe invalide.";
-      });
-  }
-</script>
+            // Récupérer les valeurs des champs email et mot de passe
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
 
+            // Connexion de l'utilisateur avec son email et mot de passe
+            // Connexion de l'utilisateur avec son email et mot de passe
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Utilisateur connecté avec succès
+                    const user = userCredential.user;
+                    console.log('Utilisateur connecté:', user);
+                    // Rediriger vers la page orderinvoice.html après la connexion
+                    window.location.href = 'orderinvoice1.html';
+                })
+                .catch((error) => {
+                    // Gestion des erreurs de connexion
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    console.error('Erreur de connexion:', errorMessage);
+                    // Afficher un message d'erreur à l'utilisateur
+                    alert(errorMessage);
+                });
+
+        });
+    </script>
+
+    <!-- ============================================================== -->
+    <!-- end login page  -->
+    <!-- ============================================================== -->
+    <!-- Optional JavaScript -->
+    <script src="assets/vendor/jquery/jquery-3.3.1.min.js"></script>
+    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.js"></script>
 </body>
+
 </html>
