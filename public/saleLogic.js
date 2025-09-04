@@ -42,7 +42,7 @@
     
     
         try {
-            const docRef = db.collection("salesTest").doc(factureId);
+            const docRef = db.collection("globalSales").doc(factureId);
             const doc = await docRef.get();
     
             if (doc.exists) {
@@ -123,7 +123,7 @@
             // Récupérer l'utilisateur connecté
             getCurrentUser().then(function(currentUserName) {
                 // Récupérer la collection de ventes pour la date sélectionnée et le vendeur connecté
-                db.collection('salesTest')
+                db.collection('globalSales')
                     .where("date", "==", selectedDate)
                     .where("sellerName", "==", currentUserName) // Filtrer par vendeur connecté
                     .get()
@@ -206,7 +206,7 @@
         userList.addEventListener('click', function(event) {
             if (event.target.classList.contains('edit-facture')) {
                 const docId = event.target.dataset.id;
-                db.collection("salesTest").doc(docId).get().then(function(doc) {
+                db.collection("globalSales").doc(docId).get().then(function(doc) {
                     if (doc.exists) {
                         const data = doc.data();
                         document.getElementById('searchInputCustomer').value = data.factureId;
@@ -281,7 +281,7 @@ document.getElementById('addProductBtn').addEventListener('click', async () => {
 
   try {
     // Étape 1 : Chercher la facture
-    const factureQuery = await db.collection('salesTest')
+    const factureQuery = await db.collection('globalSales')
       .where('factureId', '==', factureId)
       .limit(1)
       .get();
@@ -391,7 +391,7 @@ document.getElementById('updateProduct').addEventListener('click', async () => {
 
   try {
     // 1. Récupérer la facture complète
-    const factureQuery = await db.collection('salesTest')
+    const factureQuery = await db.collection('globalSales')
       .where('factureId', '==', factureId)
       .limit(1)
       .get();

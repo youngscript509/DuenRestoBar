@@ -458,7 +458,7 @@
                 const salesData = [];
 
                 // Récupérer la collection de ventes pour la date sélectionnée et le vendeur connecté
-                db.collection('salesTest')
+                db.collection('globalSales')
                     .where("date", "==", selectedDate)
                     .where("sellerName", "==", currentUserName)
                     .get()
