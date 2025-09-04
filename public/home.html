@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Accueil</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="home.css">
+  <style>
+    
+.go-home-button {
+  position: fixed;
+  top: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #f7971e, #ffd200);
+  color: #fff;
+  padding: 14px 28px;
+  font-size: 18px;
+  font-weight: bold;
+  text-decoration: none;
+  border-radius: 40px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  transition: all 0.3s ease;
+  z-index: 1000;
+  animation: bounceInUp 0.6s ease-out;
+}
+
+.go-home-button:hover {
+  transform: translateX(-50%) scale(1.05);
+  background: linear-gradient(135deg, #ffd200, #f7971e);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes bounceInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(100px) scale(0.8);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-10px) scale(1.05);
+  }
+  100% {
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+  </style>
+</head>
+<body>
+   
+  <div class="go-home-button">
+    Bienvenue, <span id="sellerName">...</span>
+  </div>
+ 
+  <div class="slider-container">
+    <div class="slider">
+      <a href="archive.html" class="home-button shadow">🧾<br>Archives</a>
+      <a href="vente.html" class="home-button main">💸<br>Vente</a>
+      <a href="rapport.html" class="home-button shadow">📊<br>Rapport</a>
+    </div>
+  </div>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+ <script src="firebase-config.js"></script>
+  <script>
+    
+     firebase.auth().onAuthStateChanged(function(user) {
+      if (user) {
+        const userId = user.uid;
+        db.collection('users').doc(userId).get()
+          .then(doc => {
+            if (doc.exists) {
+              const userData = doc.data();
+              document.getElementById('sellerName').textContent = userData.name || 'Utilisateur';
+            } else {
+              console.error('Aucun document trouvé pour cet utilisateur.');
+            }
+          })
+          .catch(error => {
+            console.error('Erreur lors de la récupération des données utilisateur :', error);
+          });
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+
+  </script>
+</body>
+</html>

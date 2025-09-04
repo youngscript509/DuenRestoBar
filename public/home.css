@@ -1,0 +1,81 @@
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #f0f0f0, #ffe8d6);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.header {
+  padding: 20px;
+  text-align: right;
+  font-weight: bold;
+  font-size: 18px;
+  color: #333;
+}
+
+.slider-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+}
+
+.slider {
+  display: flex;
+  gap: 30px;
+  padding: 0 20px;
+}
+
+.home-button {
+  min-width: 220px;
+  height: 220px;
+  border-radius: 25px;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  scroll-snap-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 22px;
+  font-weight: bold;
+  color: #333;
+  text-decoration: none;
+  transition: transform 0.3s, background 0.3s;
+   animation: bounceInUp 0.6s ease-out;
+}
+
+.home-button:hover {
+  transform: scale(1.05);
+  background: #fceabb;
+}
+
+.home-button.main {
+  transform: scale(1.1);
+  background: linear-gradient(135deg, #ffafbd, #ffc3a0);
+  color: #fff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  
+}
+
+.shadow {
+  opacity: 0.7;
+}
+@keyframes bounceInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(100px) scale(0.8);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-10px) scale(1.05);
+  }
+  100% {
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
