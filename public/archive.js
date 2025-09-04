@@ -7,6 +7,7 @@ request.onsuccess = (event) => {
   dbLocal = event.target.result;
   filterProducts();
 };
+
 request.onupgradeneeded = (event) => {
   const db = event.target.result;
   db.createObjectStore("drinks", { keyPath: "name" });
