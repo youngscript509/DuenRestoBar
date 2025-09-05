@@ -167,7 +167,7 @@
                            db.collection("globalSales").doc(docId).get().then(function(doc) {
                           if (doc.exists) {
                         const data = doc.data();
-                        document.getElementById('factureIdInput').value = data.factureId;
+                        document.getElementById('factureIdInput').value = data.factureId || data.customerId;
                         document.getElementById('customerDisplayName').textContent = data.customerName;
 
                        document.getElementById('amountGdesConsumed').value = `${data.totalGdes ?? 0}`;
@@ -511,10 +511,10 @@ totalUsInput.addEventListener('input', updateBalances);
       // enregister les valeurs dans la facture si les champs sont valides
       const doc = querySnapshot.docs[0];
       return db.collection('globalSales').doc(doc.id).update({
-        paymentMethod: method,
+        paymentmeth: method,
         amountGdesPaid: amountGdesPaid,
         amountUsPaid: amountUsPaid,
-        paymentStatus: status,
+        paymentStatut: status,
         balanceGdes: balanceGdes >= 0 ? balanceGdes : 0,
         balanceUs: balanceUs >= 0 ? balanceUs : 0,
       });
