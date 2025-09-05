@@ -38,8 +38,8 @@
               <tr><th>Produit</th><th>Qté</th><th>Prix</th></tr>
               ${productsHTML}
             </table>
-            <p class="total">Total Gdes: ${invoice.totalGdes} ${invoice.paymentMethod}</p>
-            <p class="total">Total US$: ${invoice.totalUs} ${invoice.paymentMethod}</p>
+            <p class="total">Total Gdes: ${invoice.totalGdes} ${invoice.paymentmeth}</p>
+            <p class="total">Total US$: ${invoice.totalUs} ${invoice.paymentmeth}</p>
              <p class="total">Balance/Reste: ${invoice.balanceGdes}  ${invoice.balanceUs}</p>
             <hr>
             <p>Merci et à bientôt</p>
