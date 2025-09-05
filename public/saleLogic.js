@@ -259,7 +259,8 @@
       <span>Qté: <span class="qty">${product.quantity}</span></span>
       <span>Prix: <span class="price">${product.currency === 'Gdes' ? product.priceGdes : product.priceUs}</span> ${product.currency}</span>
       <div class="product-controls">
-         
+
+        <button class="change-currency">Change</button>
               
       </div>
     </div>
