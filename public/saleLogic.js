@@ -172,7 +172,8 @@
 
                        document.getElementById('amountGdesConsumed').value = `${data.totalGdes ?? 0}`;
                        document.getElementById('amountUsConsumed').value = `${data.totalUs ?? 0}`;
-             
+                            document.getElementById('amountUSD').value = `${data.amountUsPaid ?? 0}`;
+                            document.getElementById('amountHTG').value = `${data.amountGdesPaid ?? 0}`;
                      
                     } else {
                         console.log("No such document!");
@@ -413,6 +414,10 @@ for (let p of products) {
   // Fermer la modale
   cancelBtn.addEventListener('click', () => {
     modal.classList.add('hidden');
+    document.getElementById('confirmation').textContent = "";
+    document.getElementById('amountHTG').value = 0;
+    document.getElementById('amountUSD').value = 0;
+ 
   });
 
 const htg = document.getElementById('amountHTG');
@@ -482,6 +487,17 @@ totalUsInput.addEventListener('input', updateBalances);
       alert('Facture ID manquant.');
       return;
     }
+
+      //verifier si les montants payés ne sont pas négatifs
+  if (amountGdesPaid < 0 || amountUsPaid < 0) {
+    alert("Les montants payés ne peuvent pas être négatifs.");
+    return;
+  }
+  //verfifier si les champs sont vides
+  if (isNaN(amountGdesPaid) || isNaN(amountUsPaid)) {
+    alert("Veuillez entrer des montants valides.");
+    return;
+  }
 
   db.collection('globalSales')
     .where('factureId', '==', factureId)
