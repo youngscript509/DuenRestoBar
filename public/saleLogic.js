@@ -481,7 +481,7 @@ totalUsInput.addEventListener('input', updateBalances);
 
     const balanceGdes = totalGdes - amountGdesPaid;
     const balanceUs = totalUs - amountUsPaid;
- 
+    const factureId = document.getElementById('factureIdInput').value.trim();
 
     if (!factureId) {
       alert('Facture ID manquant.');
