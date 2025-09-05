@@ -260,7 +260,7 @@
       <span>Prix: <span class="price">${product.currency === 'Gdes' ? product.priceGdes : product.priceUs}</span> ${product.currency}</span>
       <div class="product-controls">
 
-        <button class="change-currency">Change</button>
+        <button class="change-currency" id="change-currency">Change</button>
               
       </div>
     </div>
@@ -276,7 +276,86 @@
             }
         });
 
-      
+// change currency of a product in the invoice
+document.getElementById('productToDisplay').addEventListener('click', async (event) => {
+  if (event.target.classList.contains('change-currency')) {
+    const productItem = event.target.closest('.product-item');
+    const productName = productItem.querySelector('span').textContent;
+    const factureId = document.getElementById('searchInputCustomer').value.trim();
+    if (!factureId) {
+      alert('Veuillez d’abord sélectionner une facture.');
+      return;
+    }
+    try {
+      const factureQuery = await db.collection('globalSales')
+        .where('factureId', '==', factureId)
+        .limit(1)
+        .get(); 
+      if (factureQuery.empty) {
+        alert('Facture non trouvée.');
+        return;
+      }
+      const factureDoc = factureQuery.docs[0];
+      const factureRef = factureDoc.ref;
+      let factureData = factureDoc.data();
+      const products = factureData.products || [];
+      let productFound = false;
+      for (let p of products) {
+        if (p.item === productName) {
+          p.currency = p.currency === 'Gdes' ? 'Us' : 'Gdes'; // Toggle currency
+          productFound = true;
+          // changer le price dans la base de donnée aussi en se basant sur priceGdes et priceUs en fonction de la nouveele devise
+          p.price = p.currency === 'Gdes' ? p.priceGdes : p.priceUs;
+          
+          break;
+        } }
+      if (!productFound) {
+        alert('Produit non trouvé dans la facture.');
+        return;
+      }   
+      // Recalculer les totaux
+      let totalGdes = 0;
+      let totalUs = 0;  
+      for (let p of products) {
+        if (p.currency === 'Gdes') {
+          totalGdes += p.quantity * (parseFloat(p.priceGdes) || 0);
+        } else if (p.currency === 'Us') {
+          totalUs += p.quantity * (parseFloat(p.priceUs) || 0);
+        } }  
+      await factureRef.update({
+        products: products,
+        totalGdes: totalGdes,
+        totalUs: totalUs
+      });
+      displaySales(); // Rafraîchir l'affichage des ventes
+      // Mettre à jour l'affichage de la facture
+      document.getElementById('totalGdesDisplay').textContent = `${totalGdes} HT`;
+      document.getElementById('totalUsDisplay').textContent = `${totalUs} $`;
+      // Mettre à jour l'affichage des produits
+      const invoiceTable = document.getElementById('productToDisplay');
+      invoiceTable.innerHTML = '';
+      products.forEach(product => {
+        const html = `
+          <div class="product-item">
+            <span>${product.item}</span>    
+            <span>Qté: <span class="qty">${product.quantity}</span></span>
+            <span>Prix: <span class="price">${product.currency === 'Gdes' ? product.priceGdes : product.priceUs}</span> ${product.currency}</span>
+            <div class="product-controls">
+
+              <button class="change-currency" id="change-currency">Change</button>
+              
+            </div>
+          </div>
+        `;
+        invoiceTable.insertAdjacentHTML('beforeend', html);
+      });
+    } catch (err) {
+      console.error("Erreur :", err);
+      alert("Une erreur s’est produite.");
+    }
+  }
+});
+
         // Fonction utilitaire pour créer un input avec une valeur par défaut
         function createInput(type, value) {
             const input = document.createElement('input');
