@@ -147,3 +147,40 @@
     // --- BOUTONS ---
     document.getElementById("btnPOS").addEventListener("click", () => getInvoiceAndPrint("POS"));
     document.getElementById("btnA4").addEventListener("click", () => getInvoiceAndPrint("A4"));
+ 
+  // --- Imprimer tous les produits de category food de la facture se basant sur le factureId pour la cuisine ---
+  async function printKitchenInvoice() {
+    const factureId = document.getElementById("factureIdInput").value.trim();
+    // TODO: Add logic to fetch the invoice and print kitchen items
+    // Example placeholder:
+
+    if (!factureId) {
+      alert("Veuillez entrer un factureId.");
+      return;
+    }
+    try {
+      const querySnapshot = await db.collection("globalSales")
+        .where("factureId", "==", factureId)
+        .get();
+
+      if (querySnapshot.empty) {
+        alert("Aucune facture trouvée.");
+        return;
+      }
+
+      querySnapshot.forEach(doc => {
+        const invoiceData = doc.data();
+        // Filter products by category 'food'
+        const kitchenProducts = invoiceData.products.filter(p => p.category === "food");
+        // Example: print or display kitchen products
+        console.log("Produits cuisine:", kitchenProducts);
+        // Imprimer sur le POS 80mm
+        printPOS80mm({
+          ...invoiceData,
+          products: kitchenProducts
+        });
+      });
+    } catch (error) {
+      console.error("Erreur Firestore:", error);
+    }
+  }
