@@ -419,7 +419,7 @@ for (let p of products) {
     document.getElementById('amountUSD').value = 0;
  
   });
-
+const factureId = document.getElementById('factureIdInput');
 const htg = document.getElementById('amountHTG');
 const usd = document.getElementById('amountUSD');
 const totalGdesInput = document.getElementById('amountGdesConsumed');
