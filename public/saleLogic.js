@@ -167,7 +167,7 @@
                            db.collection("globalSales").doc(docId).get().then(function(doc) {
                           if (doc.exists) {
                         const data = doc.data();
-                        document.getElementById('factureIdInput').value = data.factureId || data.customerId;
+                        document.getElementById('factureIdInput').value = data.factureId;
                         document.getElementById('customerDisplayName').textContent = data.customerName;
 
                        document.getElementById('amountGdesConsumed').value = `${data.totalGdes ?? 0}`;
