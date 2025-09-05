@@ -122,7 +122,7 @@
       }
 
       try {
-        const querySnapshot = await db.collection("salesTest")
+        const querySnapshot = await db.collection("globalSales")
           .where("factureId", "==", factureId)
           .get();
 
