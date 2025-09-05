@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Crédits et Non Payés par Date</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h2, h3 { color: #333; }
+        label { font-weight: bold; }
+        input[type="date"] { padding: 5px; margin: 10px 0; font-size: 16px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h2>Liste des Crédits et Non Payés</h2>
+
+    <label for="dateInput">Sélectionner une date :</label>
+    <input type="date" id="dateInput">
+
+    <div id="resultsContainer"></div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+      <script src="firebase-config.js"></script>
+    <script>
+       
+        // Fonction de récupération filtrée
+        function fetchCreditsAndUnpaidsByDate() {
+            const selectedDate = document.getElementById('dateInput').value;
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = '';
+
+            if (!selectedDate) {
+                alert("Veuillez sélectionner une date.");
+                return;
+            }
+
+            db.collection("globalSales")
+                .where("date", "==", selectedDate)
+                .where("paymentStatut", "in", ["CREDIT", "NONPAYE"])
+                .get()
+                .then(snapshot => {
+                    let html = `<h3>Résultats pour le ${selectedDate} (${snapshot.size})</h3>`;
+                    if (snapshot.empty) {
+                        html += "<p>Aucun crédit ou non payé trouvé pour cette date.</p>";
+                    } else {
+                        html += `
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Nom du Client</th>
+                                        <th>Vendeur</th>
+                                        <th>Statut</th>
+                                        <th>Total Gdes</th>
+                                        <th>Total US</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                        `;
+                        snapshot.forEach(doc => {
+                            const data = doc.data();
+                            html += `
+                                <tr>
+                                    <td>${data.customerName || 'Inconnu'}</td>
+                                    <td>${data.sellerName || 'Inconnu'}</td>
+                                    <td>${data.paymentStatut}</td>
+                                    <td>${data.totalGdes || 0}</td>
+                                    <td>${data.totalUs || 0}</td>
+                                </tr>
+                            `;
+                        });
+                        html += '</tbody></table>';
+                    }
+
+                    container.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error("Erreur Firebase :", error);
+                    container.innerHTML = "<p>Erreur lors du chargement des données.</p>";
+                });
+        }
+
+        // Écouteur changement de date
+        document.getElementById('dateInput').addEventListener('change', fetchCreditsAndUnpaidsByDate);
+    </script>
+</body>
+</html>

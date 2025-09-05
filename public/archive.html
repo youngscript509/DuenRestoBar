@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Archives Produits</title>
+  <link rel="stylesheet" href="archive.css" />
+ <style>
+    
+.go-home-button {
+  position: fixed;
+  top: 25px;
+  left: 8%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #f7971e, #ffd200);
+  color: #fff;
+  padding: 14px 28px;
+  font-size: 18px;
+  font-weight: bold;
+  text-decoration: none;
+  border-radius: 40px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  transition: all 0.3s ease;
+  z-index: 1000;
+  animation: bounceInUp 0.6s ease-out;
+}
+
+.go-home-button:hover {
+  transform: translateX(-50%) scale(1.05);
+  background: linear-gradient(135deg, #ffd200, #f7971e);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes bounceInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(100px) scale(0.8);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-10px) scale(1.05);
+  }
+  100% {
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📦 Archives des Produits</h1>
+    <button id="syncBtn">🔄 Sync Firestore → Local</button>
+    <div class="w-full flex justify-center mt-6">
+  <div class="search-wrapper">
+  <input type="text" id="searchInput" placeholder="🔍 Rechercher un produit..." />
+</div>
+
+</div>
+
+  </header>
+<!-- Progress Container -->
+<div id="progressContainer" class="fixed top-4 right-4 p-4 bg-white rounded-xl shadow-lg border border-gray-200 z-50 w-64 hidden">
+  <div class="text-center font-bold text-sm mb-2" id="progressText">Chargement...</div>
+  <div class="w-full h-4 bg-gray-300 rounded-full overflow-hidden">
+    <div id="progressFill" class="h-full bg-green-500 progressFill" style="width: 0%"></div>
+  </div>
+</div>
+
+<!-- Fireworks Canvas -->
+<canvas id="fireworksCanvas" class="fixed top-0 left-0 w-full h-full pointer-events-none hidden z-40"></canvas>
+
+<!-- Bouton Reset -->
+<button id="resetBtn" class="fixed bottom-6 right-6 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl shadow-lg text-sm">
+  🔁 Réinitialiser Stock Local
+</button>
+
+
+  <section id="productList" class="products animated"></section>
+  <a href="home.html" class="go-home-button">
+  🏠 Retour à l’accueil
+</a>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="firebase-config.js"></script>
+
+    <script src="archive.js"></script>
+    <script>
+        window.onload = () => {
+           filterProducts(''); // au lieu de displayProducts();
+};
+
+    </script>
+</body>
+</html>
