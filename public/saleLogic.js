@@ -34,7 +34,8 @@
         const sellerName = document.getElementById('sellerName').textContent.trim();
         const serverName = document.getElementById('waiterName').value;
         const date = document.querySelector('#invoiceDate').value;
-        const time = document.querySelector('#invoiceTime').value;
+      const time = document.querySelector('#invoiceTime').value;
+      
        
     
         const products = [];
@@ -59,7 +60,15 @@
                     sellerName,
                     serverName,
                     date,
-                    time,
+                  time,
+                    totalGdes: 0,
+                    totalUs: 0,
+                  amountGdesPaid: 0,
+                  amountUsPaid: 0,
+                  balanceGdes: 0,
+                  balanceUs: 0,
+                  paymentmeth: "cash",
+                  paymentStatut: "NONPAYEE",
                     products,
                 });
                 displaySales();
