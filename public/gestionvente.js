@@ -18,7 +18,7 @@
           <tr>
             <td>${p.item}</td>
             <td style="text-align:right;">${p.quantity}</td>
-            <td style="text-align:right;">${p.priceGdes} ${p.currency}</td>
+            <td style="text-align:right;">${p.price} ${p.currency}</td>
           </tr>
         `;
       });
