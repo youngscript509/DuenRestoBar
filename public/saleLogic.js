@@ -68,7 +68,7 @@
                   balanceGdes: 0,
                   balanceUs: 0,
                   paymentmeth: "cash",
-                  paymentStatut: "NONPAYEE",
+                  paymentStatut: "NONPAYE",
                     products,
                 });
                 displaySales();
