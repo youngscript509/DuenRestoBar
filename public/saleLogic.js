@@ -36,7 +36,7 @@
         const date = document.querySelector('#invoiceDate').value;
       const time = document.querySelector('#invoiceTime').value;
       
-       
+
     
         const products = [];
     
@@ -157,6 +157,8 @@
 
                             const seller = document.createElement('span');
                             seller.textContent = data.sellerName;
+                            const factureStatus = document.createElement('span');
+                            factureStatus.textContent = data.paymentStatut;
 
                             // Créer le bouton d'édition
                             const editBtn = document.createElement('button');
@@ -202,7 +204,10 @@
                             factureItem.appendChild(document.createTextNode(' - ')); // Ajouter un espace
                             factureItem.appendChild(timeSpan);
                             factureItem.appendChild(document.createTextNode(' - ')); // Ajouter un espace
-                            factureItem.appendChild(seller);
+                          factureItem.appendChild(seller);
+                          factureItem.appendChild(document.createTextNode(' - ')); // Ajouter un espace
+                          factureItem.appendChild(factureStatus);
+                      
                             factureItem.appendChild(document.createTextNode(' ')); // Ajouter un espace
                             factureItem.appendChild(editBtn);
                             factureItem.appendChild(outBtn);
