@@ -155,8 +155,8 @@
                             const timeSpan = document.createElement('span');
                             timeSpan.textContent = data.time;
 
-                            const seller = document.createElement('span');
-                            seller.textContent = data.sellerName;
+                            const paymentmeth = document.createElement('span');
+                            paymentmeth.textContent = data.paymentmeth;
                             const factureStatus = document.createElement('span');
                             factureStatus.textContent = data.paymentStatut;
 
@@ -204,7 +204,7 @@
                             factureItem.appendChild(document.createTextNode(' - ')); // Ajouter un espace
                             factureItem.appendChild(timeSpan);
                             factureItem.appendChild(document.createTextNode(' - ')); // Ajouter un espace
-                          factureItem.appendChild(seller);
+                          factureItem.appendChild(paymentmeth);
                           factureItem.appendChild(document.createTextNode(' - ')); // Ajouter un espace
                           factureItem.appendChild(factureStatus);
                       
