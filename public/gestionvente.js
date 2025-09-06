@@ -31,6 +31,7 @@
             <p>Contact: 509 3510-1329</p>
             <hr>
             <p>Facture: ${invoice.factureId}</p>
+            <p>Facture: ${invoice.customerName}</p>
             <p>Date: ${invoice.date} - ${invoice.time}</p>
             <p>Vendeur: ${invoice.sellerName}</p>
             <hr>
@@ -102,7 +103,7 @@
             <p class="total">Total Gdes: ${invoice.totalGdes} ${invoice.paymentMethod}</p>
             <p class="total">Total US$: ${invoice.totalUs} ${invoice.paymentMethod}</p>
              <p class="total">Balance/Reste: ${invoice.balanceGdes}  ${invoice.balanceUs}</p>
-             
+             <p>Facture: ${invoice.paymentStatut}</p>
           </body>
         </html>
       `;
