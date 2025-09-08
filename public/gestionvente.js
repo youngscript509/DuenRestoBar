@@ -39,9 +39,12 @@
               <tr><th>Produit</th><th>Qté</th><th>Prix</th></tr>
               ${productsHTML}
             </table>
-            <p class="total">Total Gdes: ${invoice.totalGdes} ${invoice.paymentmeth}</p>
-            <p class="total">Total US$: ${invoice.totalUs} ${invoice.paymentmeth}</p>
-             <p class="total">Balance/Reste: ${invoice.balanceGdes}  ${invoice.balanceUs}</p>
+            
+            <p class="total">Total Gdes: ${invoice.totalGdes}</p>
+            <p class="total">Total US$: ${invoice.totalUs}</p>
+             <p class="total">Montant Gdes: ${invoice.amountGdesPaid} ${invoice.paymentmeth}</p>
+            <p class="total">Montant US$: ${invoice.amountUsPaid} ${invoice.paymentmeth}</p>
+             <p class="total">Balance/Reste:Gdes: ${invoice.balanceGdes} /US: ${invoice.balanceUs}</p>
             <hr>
             <p>Merci et à bientôt</p>
           </body>
