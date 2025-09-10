@@ -75,7 +75,10 @@
                  
             }
     
-           resetInputNewInvoice();
+          resetInputNewInvoice();
+          //reload la page pour générer un nouveau ID
+          location.reload();
+        
     
         } catch (error) {
             console.error("Erreur lors du traitement de la facture :", error);
