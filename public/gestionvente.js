@@ -16,9 +16,8 @@
       invoice.products.forEach(p => {
         productsHTML += `
           <tr>
-            <td>${p.item}</td>
-            <td style="text-align:right;">${p.quantity}</td>
-            <td style="text-align:right;">${p.price} ${p.currency}</td>
+            <td>Qt:${p.quantity} Item:${p.item} Prices:${p.priceGdes} Gdes- ${p.priceUs} Us</td>
+          
           </tr>
         `;
       });
@@ -36,7 +35,7 @@
             <p>Vendeur: ${invoice.sellerName}</p>
             <hr>
             <table>
-              <tr><th>Produit</th><th>Qté</th><th>Prix</th></tr>
+              <tr><th>Produit</th></tr>
               ${productsHTML}
             </table>
             
